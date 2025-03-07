@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "../node_modules/preline/variants.css";
+@import "$lib/ui/table/tabulator-preline.css";
 
 /* Adds pointer cursor to buttons */
 @layer base {
@@ -11,3 +12,9 @@
 
 /* Defaults hover styles on all devices */
 @custom-variant hover (&:hover);
+
+/*
+  enables dark mode toggling
+ https://tailwindcss.com/docs/dark-mode#toggling-dark-mode-manually
+*/
+@custom-variant dark (&:where(.dark, .dark *));
