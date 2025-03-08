@@ -19,24 +19,22 @@ export default defineConfig({
       {
         extends: "./vite.config.ts",
         plugins: [svelteTesting()],
-
         test: {
-          name: "client",
+          name: "jsdom",
           environment: "jsdom",
           clearMocks: true,
-          include: ["src/**/*.svelte.test.ts"],
-          exclude: ["src/lib/server/**"],
+          include: ["tests/**/*.svelte.test.ts", "tests/**/*.test.ts"],
+          // exclude: ["tests/lib/server/**"],
           setupFiles: ["tests/client-setup.ts"]
         }
       },
       {
         extends: "./vite.config.ts",
-
         test: {
-          name: "server",
+          name: "node",
           environment: "node",
-          include: ["src/**/*.test.ts"],
-          exclude: ["src/**/*.svelte.test.ts"]
+          include: ["tests/**/*.svelte.test.ts", "tests/**/*.test.ts"]
+          // exclude: ["tests/**/*.svelte.test.ts"]
         }
       }
     ]
