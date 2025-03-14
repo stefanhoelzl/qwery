@@ -17,7 +17,7 @@
 
 <script lang="ts" generics="R extends unknown[]">
   import TableView from "$lib/views/TableView.svelte";
-  import { DataFieldFilterMap, InFilter } from "$lib/QueryBuilder";
+  import { DataFieldFilterMap, InFilter, RangeFilter } from "$lib/QueryBuilder";
 
   let { columns, ctx }: Props<R> = $props();
 
@@ -38,7 +38,11 @@
     ctx.filter(
       new DataFieldFilterMap(
         Array.from(
-          valueMap.entries().map(([col, values]) => new InFilter(columns[col].field, values))
+          valueMap.entries().map(([col, values]) => {
+            if (values.every((v) => typeof v === "number"))
+              return new RangeFilter(columns[col].field, Math.min(...values), Math.max(...values));
+            return new InFilter(columns[col].field, values);
+          })
         )
       )
     );

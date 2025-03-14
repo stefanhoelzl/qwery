@@ -150,12 +150,12 @@ export class OrFilter extends FilterListGroup {
   joinWith = "OR";
 }
 
-export class DataFieldFilterMap extends FilterGroup {
+export class DataFieldFilterMap<V = unknown> extends FilterGroup {
   joinWith = "AND";
 
-  protected readonly map: Map<string, DataFieldFilter<unknown>> = new Map();
+  protected readonly map: Map<string, DataFieldFilter<V>> = new Map();
 
-  constructor(initialFilters?: DataFieldFilter<unknown>[]) {
+  constructor(initialFilters?: DataFieldFilter<V>[]) {
     super();
     initialFilters?.forEach((f) => this.map.set(f.dataField.id, f));
   }

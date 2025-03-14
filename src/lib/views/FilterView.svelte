@@ -40,7 +40,7 @@
   </div>
 
   <div
-    class="h-80 absolute z-1 mt-2 min-w-80 overflow-scroll rounded-lg bg-white shadow-md transition-[opacity,margin] dark:divide-neutral-700 dark:border dark:border-neutral-700 dark:bg-neutral-800"
+    class="absolute z-1 mt-2 max-h-80 min-w-80 overflow-scroll rounded-lg bg-white shadow-md transition-[opacity,margin] dark:divide-neutral-700 dark:border dark:border-neutral-700 dark:bg-neutral-800"
     class:hidden={!open}
     role="menu"
   >

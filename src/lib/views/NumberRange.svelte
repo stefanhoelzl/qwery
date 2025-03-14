@@ -1,6 +1,14 @@
 <script lang="ts">
   import Card from "$lib/views/Card.svelte";
 
+  interface Props {
+    min: number;
+    max: number;
+    onupdate: (min: number, max: number) => void;
+  }
+
+  let { min = $bindable(), max = $bindable(), onupdate }: Props = $props();
+
   const sliderConfig = {
     start: [140, 300],
     range: {
@@ -34,7 +42,7 @@
 </script>
 
 <Card>
-  <div class="m-12 px-4" data-hs-range-slider={JSON.stringify(sliderConfig)}></div>
+  <div class="z-20 m-6 hidden px-4" data-hs-range-slider={JSON.stringify(sliderConfig)}></div>
 
   <div class="flex flex-row space-x-4">
     <div class="basis-1/2">
@@ -42,7 +50,8 @@
         id="hs-pass-charts-values-to-inputs-min-target"
         class="block w-full rounded-lg px-4 py-2.5 disabled:pointer-events-none disabled:opacity-50 sm:py-3 sm:text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
         type="number"
-        value="250"
+        bind:value={min}
+        oninput={() => onupdate(min, max)}
       />
     </div>
     <div class="basis-1/2">
@@ -50,7 +59,8 @@
         id="hs-pass-charts-values-to-inputs-max-target"
         class="block w-full rounded-lg border-gray-600 px-4 py-2.5 ring-gray-600 focus:border-blue-500 focus:ring-blue-500 disabled:pointer-events-none disabled:opacity-50 sm:py-3 sm:text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600"
         type="number"
-        value="750"
+        bind:value={max}
+        oninput={() => onupdate(min, max)}
       />
     </div>
   </div>

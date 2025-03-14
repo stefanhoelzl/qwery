@@ -21,7 +21,7 @@ class FetchQueryEngine {
 export interface PanelContext {
   isActive: boolean;
   fetch<R>(fields: { [Key in keyof R]: DataField<R[Key]> }): Promise<R[]>;
-  filter(filterMap: DataFieldFilterMap): void;
+  filter<V>(filterMap: DataFieldFilterMap<V>): void;
   dropFilter(dataField: DataField<unknown>): void;
   onUpdate(cb: () => void): void;
   drop(): void;

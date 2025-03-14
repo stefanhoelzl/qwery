@@ -1,9 +1,15 @@
 <script lang="ts">
   import FilterView from "./FilterView.svelte";
   import type { PanelContext } from "$lib/DashboardManager.svelte";
-  import { type DataFieldFilter, NumberMetric } from "$lib/QueryBuilder";
+  import {
+    type DataFieldFilter,
+    NumberMetric,
+    RangeFilter,
+    DataFieldFilterMap
+  } from "$lib/QueryBuilder";
   import { onDestroy } from "svelte";
   import Table from "$lib/panels/Table.svelte";
+  import NumberRange from "$lib/views/NumberRange.svelte";
 
   interface Props {
     filter: DataFieldFilter<unknown>;
@@ -17,5 +23,18 @@
 </script>
 
 <FilterView label={filter.dataField.label} {ondelete}>
-  <Table {ctx} columns={[{field: filter.dataField}, {field: new NumberMetric("count()"), width: 100}]} ></Table>
+  {#if filter instanceof RangeFilter}
+    <NumberRange
+      min={filter.min}
+      max={filter.max}
+      onupdate={(min, max) => {
+        ctx.filter(new DataFieldFilterMap([new RangeFilter(filter.dataField, min, max)]));
+      }}
+    ></NumberRange>
+  {:else}
+    <Table
+      {ctx}
+      columns={[{ field: filter.dataField }, { field: new NumberMetric("count()"), width: 100 }]}
+    ></Table>
+  {/if}
 </FilterView>
