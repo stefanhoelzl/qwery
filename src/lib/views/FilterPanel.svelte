@@ -1,9 +1,9 @@
 <script lang="ts">
   import FilterView from "./FilterView.svelte";
-  import NumberRange from "$lib/views/NumberRange.svelte";
   import type { PanelContext } from "$lib/DashboardManager.svelte";
-  import { type DataFieldFilter } from "$lib/QueryBuilder";
+  import { type DataFieldFilter, NumberMetric } from "$lib/QueryBuilder";
   import { onDestroy } from "svelte";
+  import Table from "$lib/panels/Table.svelte";
 
   interface Props {
     filter: DataFieldFilter<unknown>;
@@ -17,5 +17,5 @@
 </script>
 
 <FilterView label={filter.dataField.label} {ondelete}>
-  <NumberRange></NumberRange>
+  <Table {ctx} columns={[{field: filter.dataField}, {field: new NumberMetric("count()"), width: 100}]} ></Table>
 </FilterView>
