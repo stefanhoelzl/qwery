@@ -15,9 +15,13 @@ declare global {
     setTheme(theme: string): void;
     loadTheme(): string;
   }
-}
 
-export {};
+  interface ObjectConstructor {
+    entries<O extends AnyRecord, K extends keyof O, V extends O[K]>(obj: O): [K, V][];
+    values<O extends AnyRecord, K extends keyof O, V extends O[K]>(obj: O): V[];
+    keys<O extends AnyRecord, K extends keyof O>(obj: O): K[];
+  }
+}
 
 declare module "tabulator-tables" {
   interface OptionsRows extends TabulatorTables.OptionsRows {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import PanelCard from "$lib/ui/PanelCard.svelte";
+  import Card from "$lib/views/Card.svelte";
 
   const sliderConfig = {
     start: [140, 300],
@@ -33,8 +33,8 @@
   };
 </script>
 
-<PanelCard>
-  <div class="px-4" data-hs-range-slider={JSON.stringify(sliderConfig)}></div>
+<Card>
+  <div class="m-12 px-4" data-hs-range-slider={JSON.stringify(sliderConfig)}></div>
 
   <div class="flex flex-row space-x-4">
     <div class="basis-1/2">
@@ -54,4 +54,4 @@
       />
     </div>
   </div>
-</PanelCard>
+</Card>

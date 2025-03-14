@@ -1,11 +1,7 @@
 <script lang="ts">
-  import ThemeSwitcher from "$lib/ui/ThemeSwitcher.svelte";
-  import Header from "$lib/ui/Header.svelte";
-  import PanelCard from "$lib/ui/PanelCard.svelte";
-  import PanelGrid from "$lib/ui/PanelGrid.svelte";
-  import Table from "$lib/ui/table/Table.svelte";
-  import { Terminal } from "lucide-svelte";
-  import FilterButton from "$lib/ui/FilterButton.svelte";
+  import ThemeSwitcher from "$lib/views/ThemeSwitcher.svelte";
+  import Header from "$lib/views/Header.svelte";
+  import Dashboard from "$lib/Dashboard.svelte";
 </script>
 
 <div class="flex h-screen flex-col bg-gray-50 dark:bg-neutral-900">
@@ -27,23 +23,5 @@
       <ThemeSwitcher></ThemeSwitcher>
     {/snippet}
   </Header>
-  <Header>
-    {#snippet left()}
-      <button
-        type="button"
-        class="inline-flex items-center gap-x-2 rounded-lg border border-transparent bg-transparent px-2 py-2 text-sm font-medium text-blue-800 hover:bg-transparent hover:text-blue-400 focus:bg-transparent focus:outline-hidden disabled:pointer-events-none disabled:opacity-50 dark:text-blue-800 dark:hover:bg-transparent"
-      >
-        <Terminal></Terminal>
-      </button>
-      <FilterButton></FilterButton>
-      <FilterButton></FilterButton>
-      <FilterButton></FilterButton>
-      <FilterButton></FilterButton>
-    {/snippet}
-  </Header>
-  <PanelGrid>
-    <PanelCard>
-      <Table></Table>
-    </PanelCard>
-  </PanelGrid>
+  <Dashboard></Dashboard>
 </div>

@@ -1,9 +1,4 @@
-import {
-  ReplacingDataFieldFilterMap,
-  type DataField,
-  type DataFieldFilterMap,
-  type Filter
-} from "$lib/QueryBuilder";
+import { DataFieldFilterMap, type DataField, DataFieldFilter } from "$lib/QueryBuilder";
 
 export interface FilterContext {
   filter(filterMap: DataFieldFilterMap): void;
@@ -12,41 +7,41 @@ export interface FilterContext {
 
 type UpdateCallback = () => void;
 
-export class FilterManager extends EventTarget {
-  private confirmedFilterMap = new ReplacingDataFieldFilterMap();
-  private activeFilterMap = new ReplacingDataFieldFilterMap();
+export class FilterManager {
+  private confirmedFilterMap = new DataFieldFilterMap();
+  private activeFilterMap = new DataFieldFilterMap();
   private activeContext?: FilterContext = undefined;
   private updateCallbacks: UpdateCallback[] = [];
 
-  constructor(private readonly baseFilters: Filter[] = []) {
-    super();
-  }
-
-  newFilterContext(): FilterContext {
+  createContext(): FilterContext {
     const ctx = {
       filter: (filterMap: DataFieldFilterMap) => {
         if (ctx === this.activeContext) {
-          this.activeFilterMap = new ReplacingDataFieldFilterMap(this.confirmedFilterMap.filters);
+          this.activeFilterMap = new DataFieldFilterMap(this.confirmedFilterMap.filters);
         } else {
-          this.confirmedFilterMap = new ReplacingDataFieldFilterMap(this.activeFilterMap.filters);
+          this.confirmedFilterMap = new DataFieldFilterMap(this.activeFilterMap.filters);
         }
         this.activeContext = ctx;
         filterMap.filters.forEach((f) => this.activeFilterMap.replace(f));
         this.updateCallbacks.forEach((cb) => cb());
       },
       dropFilter: (dataField: DataField<unknown>) => {
-        this.activeFilterMap.delete(dataField);
-        this.updateCallbacks.forEach((cb) => cb());
+        this.dropFilter(dataField);
       }
     };
     return ctx;
+  }
+
+  dropFilter(dataField: DataField<unknown>) {
+    this.activeFilterMap.delete(dataField);
+    this.updateCallbacks.forEach((cb) => cb());
   }
 
   onUpdate(cb: UpdateCallback) {
     this.updateCallbacks.push(cb);
   }
 
-  get filters(): Filter[] {
-    return [...this.baseFilters, ...this.activeFilterMap.filters];
+  get filters(): DataFieldFilter<unknown>[] {
+    return this.activeFilterMap.filters;
   }
 }

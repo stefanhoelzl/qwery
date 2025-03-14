@@ -1,11 +1,11 @@
 <script>
   import "../app.css";
 
-  import { afterNavigate } from "$app/navigation";
+  import { onMount } from "svelte";
 
   let { children } = $props();
 
-  afterNavigate(() => {
+  onMount(() => {
     window.HSStaticMethods.autoInit();
   });
 

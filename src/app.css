@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "../node_modules/preline/variants.css";
-@import "$lib/ui/table/tabulator-preline.css";
+@import "tabulator-tables/dist/css/tabulator_simple.min.css";
 
 /* Adds pointer cursor to buttons */
 @layer base {
@@ -18,3 +18,52 @@
  https://tailwindcss.com/docs/dark-mode#toggling-dark-mode-manually
 */
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* tabulator preline style */
+.tabulator .tabulator-header .tabulator-col.tabulator-range-highlight {
+  @apply bg-white;
+}
+
+.tabulator .tabulator-header .tabulator-col.tabulator-sortable.tabulator-col-sorter-element:hover {
+  @apply bg-white;
+}
+
+.tabulator .tabulator-header .tabulator-col {
+  border: none;
+}
+
+html.dark {
+  .tabulator .tabulator-tableholder {
+    @apply bg-neutral-800;
+  }
+
+  .tabulator .tabulator-header .tabulator-col {
+    @apply bg-neutral-800;
+    @apply text-white;
+  }
+
+  .tabulator .tabulator-header .tabulator-col.tabulator-range-highlight {
+    @apply bg-neutral-800;
+    @apply text-white;
+  }
+
+  .tabulator
+    .tabulator-header
+    .tabulator-col.tabulator-sortable.tabulator-col-sorter-element:hover {
+    @apply bg-neutral-800;
+    @apply text-white;
+  }
+
+  .tabulator-row,
+  .tabulator-row.tabulator-row-even {
+    @apply bg-neutral-800;
+    @apply text-white;
+  }
+
+  .tabulator-row,
+  .tabulator-row.tabulator-row-odd {
+    @apply bg-neutral-800;
+    @apply text-white;
+  }
+}
+/* tabulator */

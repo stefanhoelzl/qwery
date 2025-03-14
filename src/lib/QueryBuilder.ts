@@ -1,32 +1,31 @@
 export type DataFieldOpts<V> = {
-  sql: string;
+  sql?: string;
   label?: string;
   formatter?: (value: V) => string;
   nullable?: boolean;
 };
 
 export abstract class DataField<D> {
-  constructor(private opts: DataFieldOpts<D>) {}
+  constructor(
+    public readonly id: string,
+    private opts?: DataFieldOpts<D>
+  ) {}
 
   abstract get aggregation(): boolean;
   abstract valueAsSql(value: D): string;
 
   get sql(): string {
-    return this.opts.sql;
+    return this.opts?.sql || this.id;
   }
 
   get label(): string {
-    return this.opts.label || this.sql;
-  }
-
-  get uniqueKey(): string {
-    return this.sql;
+    return this.opts?.label || this.id;
   }
 
   valueAsString(value: D): string {
     return value === null || value === undefined
       ? "<null>"
-      : this.opts.formatter?.(value) || value.toString();
+      : this.opts?.formatter?.(value) || value.toString();
   }
 }
 
@@ -104,11 +103,19 @@ export class NumberDimension extends Dimension<number> {
   valueAsSql(value: number): string {
     return value.toString();
   }
+
+  valueAsString(value: number): string {
+    return value.toLocaleString();
+  }
 }
 
 export class NumberMetric extends Metric<number> {
   valueAsSql(value: number): string {
     return value.toString();
+  }
+
+  valueAsString(value: number): string {
+    return value.toLocaleString();
   }
 }
 
@@ -143,16 +150,14 @@ export class OrFilter extends FilterListGroup {
   joinWith = "OR";
 }
 
-export abstract class DataFieldFilterMap<
-  V extends DataFieldFilter<unknown> = DataFieldFilter<unknown>
-> extends FilterGroup {
+export class DataFieldFilterMap extends FilterGroup {
   joinWith = "AND";
 
-  protected readonly map: Map<string, V> = new Map();
+  protected readonly map: Map<string, DataFieldFilter<unknown>> = new Map();
 
-  constructor(initialFilters?: V[]) {
+  constructor(initialFilters?: DataFieldFilter<unknown>[]) {
     super();
-    initialFilters?.forEach((f) => this.map.set(f.dataField.uniqueKey, f));
+    initialFilters?.forEach((f) => this.map.set(f.dataField.id, f));
   }
 
   get filters() {
@@ -160,26 +165,16 @@ export abstract class DataFieldFilterMap<
   }
 
   has(dataField: DataField<unknown>) {
-    return this.map.has(dataField.uniqueKey);
+    return this.map.has(dataField.id);
   }
 
   delete(dataField: DataField<unknown>) {
-    return this.map.delete(dataField.uniqueKey);
+    return this.map.delete(dataField.id);
   }
-}
 
-export class DataFieldInFilterMap extends DataFieldFilterMap<InFilter<unknown>> {
-  addValues<V>(dataField: DataField<V>, values: V[]) {
-    if (!this.map.has(dataField.uniqueKey))
-      this.map.set(dataField.uniqueKey, new InFilter(dataField, values) as InFilter<unknown>);
-    else this.map.get(dataField.uniqueKey)?.addValues(values);
-  }
-}
-
-export class ReplacingDataFieldFilterMap extends DataFieldFilterMap {
   replace(filter: DataFieldFilter<unknown>) {
     const existed = this.has(filter.dataField);
-    this.map.set(filter.dataField.uniqueKey, filter);
+    this.map.set(filter.dataField.id, filter);
     return existed;
   }
 }
@@ -191,13 +186,15 @@ export class Query {
   }
 }
 
-export type AggregationQueryOptions = {
+export type AggregationQueryOptions<R> = {
   table: string;
-  select: Record<string, DataField<unknown>>;
+  select: {
+    [K in keyof R]: DataField<R[K]>;
+  };
   filters?: Filter[];
 };
 
-export function buildAggregationQuery(options: AggregationQueryOptions): Query {
+export function buildAggregationQuery<R>(options: AggregationQueryOptions<R>): Query {
   const select = Object.values(options.select)
     .map((s) => `${s.sql}`)
     .join(", ");
