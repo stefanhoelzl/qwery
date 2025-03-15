@@ -1,7 +1,7 @@
 export type DataFieldOpts<V> = {
   sql?: string;
   label?: string;
-  formatter?: (value: V) => string;
+  formatter?: (value: V | unknown) => string;
   nullable?: boolean;
 };
 

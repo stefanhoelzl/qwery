@@ -1,6 +1,6 @@
 <script lang="ts">
-  import FilterView from "./FilterView.svelte";
-  import type { PanelContext } from "$lib/DashboardManager.svelte";
+  import FilterView from "../views/FilterView.svelte";
+  import type { PanelContext } from "$lib/DashboardManager.svelte.js";
   import {
     type DataFieldFilter,
     NumberMetric,

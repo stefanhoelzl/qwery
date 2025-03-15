@@ -1,21 +1,41 @@
 <script lang="ts">
   import Header from "$lib/views/Header.svelte";
-  import Table from "$lib/panels/Table.svelte";
-  import Grid from "./views/Grid.svelte";
-  import GridCell from "$lib/views/GridCell.svelte";
-  import FilterPanel from "$lib/views/FilterPanel.svelte";
+  import FilterPanel from "$lib/panels/FilterPanel.svelte";
   import Actions from "$lib/views/Actions.svelte";
-  import { StringDimension, NumberMetric, NotNullFilter } from "$lib/QueryBuilder";
   import { DashboardManager } from "$lib/DashboardManager.svelte";
   import { onMount } from "svelte";
+  import type { PanelOrContainer, AnyProps, Container, Panel } from "$lib/panels";
+  import { dashboard } from "../project/dashboard";
 
   const dashboardManager = new DashboardManager();
-  const article_number = new StringDimension("prodstep_articlenumber");
-  const stage = new StringDimension("prodstep_stage");
-  const count = new NumberMetric("count()", { label: "#" });
-
   onMount(() => dashboardManager.triggerUpdates());
 </script>
+
+{#snippet panelOrContainer(def: PanelOrContainer<AnyProps>)}
+  {#if def.type === "container"}
+    {@render containerSnippet(def)}
+  {:else if def.type === "panel"}
+    {@render panelSnippet(def)}
+  {/if}
+{/snippet}
+
+{#snippet containerSnippet(def: Container<AnyProps, AnyProps, AnyProps>)}
+  <svelte:component this={def.component} {...def.props}>
+    {#each def.content as child, idx (idx)}
+      <svelte:component this={def.wrapper} {...child.layout}>
+        {@render panelOrContainer(child)}
+      </svelte:component>
+    {/each}
+  </svelte:component>
+{/snippet}
+
+{#snippet panelSnippet(def: Panel<AnyProps, AnyProps>)}
+  <svelte:component
+    this={def.component}
+    {...def.props}
+    ctx={dashboardManager.createPanel({ filter: def.filter })}
+  ></svelte:component>
+{/snippet}
 
 <Header>
   {#snippet left()}
@@ -31,18 +51,6 @@
 </Header>
 
 <div class="contents">
-  <Grid cols={12} rows={12}>
-    <GridCell row={0} row-span={12} col={0} col-span={3}>
-      <Table
-        columns={[{ field: article_number }, { field: count, width: 100 }]}
-        ctx={dashboardManager.createPanel({ filter: new NotNullFilter(article_number) })}
-      ></Table>
-    </GridCell>
-    <GridCell row={0} row-span={6} col={3} col-span={2}>
-      <Table
-        columns={[{ field: stage }, { field: count, width: 100 }]}
-        ctx={dashboardManager.createPanel({ filter: new NotNullFilter(stage) })}
-      ></Table>
-    </GridCell>
-  </Grid>
+  {/* @ts-expect-error do not understand */ null}
+  {@render panelOrContainer(dashboard)}
 </div>
