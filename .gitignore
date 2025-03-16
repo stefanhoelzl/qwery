@@ -1,4 +1,6 @@
 node_modules
+**/*.ddb
+*+/*.ddb.tmp/**
 
 # Output
 .output

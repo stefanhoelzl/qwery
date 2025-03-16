@@ -7,7 +7,7 @@ export async function POST({ request }) {
   const query = await request.json();
 
   if (!db)
-    db = await DuckDBInstance.create("/var/home/stefan/Development/repos/digger/tb2logs/db.ddb", {
+    db = await DuckDBInstance.create("src/project/data.ddb", {
       access_mode: "READ_ONLY",
       // threads: "2",
       // memory_limit: "4GB",
