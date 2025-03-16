@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "postinstall": "mkdir -p static/js && cp node_modules/preline/dist/preline.js static/js/preline.js && cp node_modules/nouislider/dist/nouislider.min.js static/js/nouislider.js",
+    "dev": "DB=src/project/data.ddb vite dev",
     "build": "vite build",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
@@ -13,12 +14,14 @@
     "format": "prettier --write . && eslint . --fix --max-warnings=0",
     "test:unit": "vitest",
     "test": "npm run test:unit -- --run",
-    "tsx": "npx tsx"
+    "tsx": "npx tsx",
+    "build:image": "buildah build --output=type=tar,dest=image.tar -t qwery ."
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
     "@eslint/js": "^9.18.0",
     "@sveltejs/adapter-auto": "^4.0.0",
+    "@sveltejs/adapter-node": "^5.2.12",
     "@sveltejs/kit": "^2.16.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tailwindcss/forms": "^0.5.10",
@@ -29,6 +32,7 @@
     "@types/node": "^22.13.9",
     "@types/tabulator-tables": "^6.2.4",
     "clsx": "^2.1.1",
+    "echarts": "^5.6.0",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-svelte": "^3.0.0",
@@ -43,7 +47,7 @@
     "sass-embedded": "^1.85.1",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
-    "tabulator-tables": "file:../tabulator",
+    "tabulator-tables": "git+https://github.com/stefanhoelzl/tabulator.git#fixed",
     "tailwindcss": "^4.0.9",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.20.0",
@@ -51,7 +55,6 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
-    "@duckdb/node-api": "^1.2.1-alpha.16",
-    "echarts": "^5.6.0"
+    "@duckdb/node-api": "^1.2.1-alpha.16"
   }
 }

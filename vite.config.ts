@@ -13,7 +13,11 @@ export default defineConfig({
       }
     }
   },
-
+  build: {
+    rollupOptions: {
+      external: ["@duckdb/node-api"]
+    }
+  },
   test: {
     workspace: [
       {

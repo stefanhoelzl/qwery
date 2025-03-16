@@ -1,6 +1,8 @@
 node_modules
 **/*.ddb
 *+/*.ddb.tmp/**
+static/js/**
+image.tar
 
 # Output
 .output
