@@ -8,7 +8,7 @@ export type DataFieldOpts<V> = {
 export abstract class DataField<D> {
   constructor(
     public readonly id: string,
-    private opts?: DataFieldOpts<D>
+    protected opts?: DataFieldOpts<D>
   ) {}
 
   abstract get aggregation(): boolean;
@@ -115,7 +115,7 @@ export class NumberMetric extends Metric<number> {
   }
 
   valueAsString(value: number): string {
-    return value.toLocaleString();
+    return this.opts?.formatter?.(value) || value.toLocaleString();
   }
 }
 
