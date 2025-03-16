@@ -12,8 +12,10 @@ class FetchQueryEngine {
     });
 
     const json = await response.json();
-    return json.map((r: R) =>
-      Object.keys(record).reduce((prev, idx) => ({ ...prev, [idx]: r[idx] }), {})
+    return json.map((r: unknown[]) =>
+      Object.keys(record)
+        .map((key, idx) => [key, idx] as const)
+        .reduce((prev, [key, idx]) => ({ ...prev, [key]: r[idx] }), {})
     );
   }
 }
