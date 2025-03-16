@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import {ChevronLeft, ChevronRight} from "lucide-svelte";
 
   interface Props {
     tabs: string[];
@@ -44,20 +45,7 @@
     type="button"
     class="hs-scroll-nav-prev hs-scroll-nav-disabled:hidden hs-scroll-nav-disabled:pointer-events-none absolute start-0 top-1/2 z-10 hidden size-9 shrink-0 -translate-y-1/2 items-center justify-center rounded-full bg-white text-gray-800 hover:bg-gray-100 focus:bg-gray-100 focus:outline-hidden md:flex dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
   >
-    <svg
-      class="size-5 shrink-0"
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="m15 18-6-6 6-6"></path>
-    </svg>
+    <ChevronLeft></ChevronLeft>
     <span class="sr-only">Previous</span>
   </button>
   <button
@@ -65,20 +53,7 @@
     class="hs-scroll-nav-next hs-scroll-nav-disabled:hidden hs-scroll-nav-disabled:pointer-events-none absolute end-0 top-1/2 z-10 hidden size-9 shrink-0 -translate-y-1/2 items-center justify-center rounded-full bg-white text-gray-800 hover:bg-gray-100 focus:bg-gray-100 focus:outline-hidden md:flex dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
   >
     <span class="sr-only">Next</span>
-    <svg
-      class="size-5 shrink-0"
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="m9 18 6-6-6-6"></path>
-    </svg>
+    <ChevronRight></ChevronRight>
   </button>
   <!-- End Arrows -->
 </div>
