@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ThemeSwitcher from "$lib/views/ThemeSwitcher.svelte";
+  // import ThemeSwitcher from "$lib/views/ThemeSwitcher.svelte";
   import Header from "$lib/views/Header.svelte";
   import Dashboard from "$lib/Dashboard.svelte";
 </script>
@@ -20,7 +20,7 @@
         class="font-medium text-gray-600 hover:text-gray-400 focus:text-gray-400 focus:outline-hidden dark:text-neutral-400 dark:hover:text-neutral-500 dark:focus:text-neutral-500"
         href="#logout">Logout</a
       >
-      <ThemeSwitcher></ThemeSwitcher>
+      <!-- <ThemeSwitcher></ThemeSwitcher> -->
     {/snippet}
   </Header>
   <Dashboard></Dashboard>
