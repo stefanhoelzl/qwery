@@ -25,7 +25,7 @@
   let data: R[] = $state([]);
   let pages: number = $state(1);
 
-  async function refreshIfInactive() {
+  ctx.onUpdate(async () => {
     if (!ctx.isActive) {
       const distinctFields = columns
         .map((c) => c.field)
@@ -45,9 +45,7 @@
           data = updatedData;
         });
     }
-  }
-
-  ctx.onUpdate(() => refreshIfInactive());
+  });
 
   function onDataRequest(opts: { page: number; sort: { field: string; dir: "asc" | "desc" }[] }) {
     return ctx

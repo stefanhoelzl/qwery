@@ -14,7 +14,7 @@
   let chartElement: HTMLDivElement;
   let chart: echarts.ECharts;
 
-  function refresh() {
+  ctx.onUpdate(() => {
     ctx.fetch({ x, y }).then((data) => {
       chart.setOption({
         xAxis: {
@@ -28,10 +28,7 @@
         ]
       });
     });
-  }
-
-  $effect(() => refresh());
-  ctx.onUpdate(() => refresh());
+  });
 
   onMount(() => {
     chart = echarts.init(chartElement);

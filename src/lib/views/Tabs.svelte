@@ -1,14 +1,19 @@
 <script lang="ts">
-  import type { Snippet } from "svelte";
+  import { onMount, type Snippet } from "svelte";
   import {ChevronLeft, ChevronRight} from "lucide-svelte";
+  import type {ContainerContext} from "$lib/DashboardManager.svelte";
 
   interface Props {
     tabs: string[];
     id: number;
     children?: Snippet;
+    ctx: ContainerContext;
   }
 
-  const { children, tabs, id }: Props = $props();
+  const { children, tabs, id, ctx }: Props = $props();
+  let selectedIdx = $state(0);
+
+  onMount(() => Array(tabs.length).keys().forEach(idx => ctx.onVisibilityChange(idx, idx === selectedIdx)))
 </script>
 
 <div
@@ -26,13 +31,19 @@
     {#each tabs as name, idx (name)}
       <button
         type="button"
-        class:active={idx === 0}
+        class:active={idx === selectedIdx}
         class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 active inline-flex snap-start items-center gap-x-2 border-b-2 border-transparent px-1 py-2 text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:text-blue-600 focus:outline-hidden disabled:pointer-events-none disabled:opacity-50 dark:text-neutral-400 dark:hover:text-blue-500"
         id={`tabs-item-${id}-${idx}`}
-        aria-selected={idx === 0}
+        aria-selected={idx === selectedIdx}
         data-hs-tab={`#tabs-${id}-${idx}`}
         aria-controls={`tabs-${id}-${idx}`}
         role="tab"
+        onclick={() => {
+          if(selectedIdx === idx) return;
+          ctx.onVisibilityChange(selectedIdx, false);
+          ctx.onVisibilityChange(idx, true);
+          selectedIdx = idx
+        }}
       >
         <!-- ADD ICON -->
         {name}
