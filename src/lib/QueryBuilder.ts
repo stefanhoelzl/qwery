@@ -192,6 +192,9 @@ export type AggregationQueryOptions<R> = {
     [K in keyof R]: DataField<R[K]>;
   };
   filters?: Filter[];
+  limit?: number;
+  offset?: number;
+  orderBy?: [DataField<unknown>, "asc" | "desc"][];
 };
 
 export function buildAggregationQuery<R>(options: AggregationQueryOptions<R>): Query {
@@ -209,16 +212,19 @@ export function buildAggregationQuery<R>(options: AggregationQueryOptions<R>): Q
   );
   const where = filters.where.length > 0 ? new AndFilter(filters.where) : undefined;
   const having = filters.having.length > 0 ? new AndFilter(filters.having) : undefined;
-
+  const defaultOrder = Object.values(options.select).map((k) => k.sql);
+  const customOrder = options.orderBy
+    ? options.orderBy.map(([field, dir]) => `${field.sql} ${dir}`)
+    : [];
   const parts = [
     `SELECT ${select}`,
     `FROM ${options.table}`,
     where ? `WHERE ${where.sql}` : undefined,
     "GROUP BY ALL",
     having ? `HAVING ${having.sql}` : undefined,
-    `ORDER BY ${Object.values(options.select)
-      .map((k) => k.sql)
-      .join(",")}`
+    `ORDER BY ${[...customOrder, ...defaultOrder].join(",")}`,
+    options.limit ? `LIMIT ${options.limit}` : undefined,
+    options.offset ? `OFFSET ${options.offset}` : undefined
   ];
   return new Query(parts.filter((p) => p !== undefined).join(" "));
 }

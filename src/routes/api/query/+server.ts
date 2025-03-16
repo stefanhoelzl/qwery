@@ -8,7 +8,7 @@ export async function POST({ request }) {
 
   if (!db)
     db = await DuckDBInstance.create(process.env["DB"], {
-      access_mode: "READ_ONLY",
+      access_mode: "READ_ONLY"
       // threads: "2",
       // memory_limit: "4GB",
     });

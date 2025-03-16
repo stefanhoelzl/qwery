@@ -1,10 +1,15 @@
 import { FilterManager } from "$lib/FilterManager";
-import { DataField, DataFieldFilter, type DataFieldFilterMap } from "$lib/QueryBuilder";
+import {
+  DataField,
+  DataFieldFilter,
+  type DataFieldFilterMap,
+  type AggregationQueryOptions
+} from "$lib/QueryBuilder";
 import { type Filter, buildAggregationQuery } from "$lib/QueryBuilder";
 
 class FetchQueryEngine {
-  async query<R>(record: { [Key in keyof R]: DataField<R[Key]> }, filters: Filter[]): Promise<R[]> {
-    const body = buildAggregationQuery({ table: "data", select: record, filters });
+  async query<R>(opts: AggregationQueryOptions<R>): Promise<R[]> {
+    const body = buildAggregationQuery(opts);
     const response = await fetch("/api/query", {
       method: "POST",
       body: body.json(),
@@ -13,16 +18,22 @@ class FetchQueryEngine {
 
     const json = await response.json();
     return json.map((r: unknown[]) =>
-      Object.keys(record)
+      Object.keys(opts.select)
         .map((key, idx) => [key, idx] as const)
         .reduce((prev, [key, idx]) => ({ ...prev, [key]: r[idx] }), {})
     );
   }
 }
 
+type FetchOpts = {
+  limit?: number;
+  offset?: number;
+  orderBy?: [DataField<unknown>, "asc" | "desc"][];
+};
+
 export interface PanelContext {
   isActive: boolean;
-  fetch<R>(fields: { [Key in keyof R]: DataField<R[Key]> }): Promise<R[]>;
+  fetch<R>(fields: { [Key in keyof R]: DataField<R[Key]> }, opts?: FetchOpts): Promise<R[]>;
   filter<V>(filterMap: DataFieldFilterMap<V>): void;
   dropFilter(dataField: DataField<unknown>): void;
   onUpdate(cb: () => void): void;
@@ -37,7 +48,7 @@ export class DashboardManager {
   public filters: DataFieldFilter<unknown>[] = $state([]);
   private contexts: PanelContext[] = [];
 
-  constructor() {
+  constructor(private table: string) {
     this.filterManager.onUpdate(() => {
       this.filters = this.filterManager.filters;
       this.triggerUpdates();
@@ -58,8 +69,13 @@ export class DashboardManager {
 
     const ctx = $state({
       isActive,
-      fetch: <R>(fields: { [Key in keyof R]: DataField<R[Key]> }) =>
-        this.queryEngine.query(fields, [...filters, ...this.filterManager.filters]),
+      fetch: <R>(fields: { [Key in keyof R]: DataField<R[Key]> }, opts?: FetchOpts) =>
+        this.queryEngine.query({
+          table: this.table,
+          select: fields,
+          filters: [...filters, ...this.filterManager.filters],
+          ...opts
+        }),
       filter: (filterMap: DataFieldFilterMap) => {
         this.contexts.forEach((context) => {
           context.isActive = context === ctx;

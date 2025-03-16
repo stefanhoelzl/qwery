@@ -2,13 +2,11 @@
   import Header from "$lib/views/Header.svelte";
   import FilterPanel from "$lib/panels/FilterPanel.svelte";
   import Actions from "$lib/views/Actions.svelte";
-  import { DashboardManager } from "$lib/DashboardManager.svelte";
   import { onMount } from "svelte";
   import type { PanelOrContainer, AnyProps, Container, Panel } from "$lib/panels";
-  import { dashboard } from "../project/dashboard";
+  import { manager, dashboard } from "../project/dashboard";
 
-  const dashboardManager = new DashboardManager();
-  onMount(() => dashboardManager.triggerUpdates());
+  onMount(() => manager.triggerUpdates());
 </script>
 
 {#snippet panelOrContainer(def: PanelOrContainer<AnyProps>)}
@@ -33,18 +31,18 @@
   <svelte:component
     this={def.component}
     {...def.props}
-    ctx={dashboardManager.createPanel({ filter: def.filter })}
+    ctx={manager.createPanel({ filter: def.filter })}
   ></svelte:component>
 {/snippet}
 
 <Header>
   {#snippet left()}
     <Actions></Actions>
-    {#each dashboardManager.filters as filter (filter.dataField.id)}
+    {#each manager.filters as filter (filter.dataField.id)}
       <FilterPanel
-        ctx={dashboardManager.createPanel()}
+        ctx={manager.createPanel()}
         {filter}
-        ondelete={() => dashboardManager.filterManager.dropFilter(filter.dataField)}
+        ondelete={() => manager.filterManager.dropFilter(filter.dataField)}
       ></FilterPanel>
     {/each}
   {/snippet}

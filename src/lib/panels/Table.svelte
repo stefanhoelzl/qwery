@@ -17,22 +17,47 @@
 
 <script lang="ts" generics="R extends unknown[]">
   import TableView from "$lib/views/TableView.svelte";
-  import { DataFieldFilterMap, InFilter, RangeFilter } from "$lib/QueryBuilder";
+  import { DataFieldFilterMap, InFilter, NumberMetric, RangeFilter } from "$lib/QueryBuilder";
 
   let { columns, ctx }: Props<R> = $props();
 
+  const pageSize = 200;
   let data: R[] = $state([]);
+  let pages: number = $state(1);
 
-  function refreshIfInactive() {
-    if (!ctx.isActive)
-      //  @ts-expect-error i dont know
-      ctx.fetch<R>(columns.map((c) => c.field)).then((updatedData) => {
-        data = updatedData;
-      });
+  async function refreshIfInactive() {
+    if (!ctx.isActive) {
+      const distinctFields = columns
+        .map((c) => c.field)
+        .filter((f) => !f.aggregation)
+        .map((f) => f.sql);
+      const distinctClause =
+        distinctFields.length === 1 ? distinctFields[0] : `(${distinctFields.join(", ")})`;
+      const countResult = await ctx.fetch([new NumberMetric(`count(distinct ${distinctClause})`)]);
+      pages = Math.ceil(countResult[0][0] / pageSize);
+      ctx
+        .fetch<R>(
+          //  @ts-expect-error i dont know
+          columns.map((c) => c.field),
+          { limit: pageSize }
+        )
+        .then((updatedData) => {
+          data = updatedData;
+        });
+    }
   }
 
-  $effect(() => refreshIfInactive());
   ctx.onUpdate(() => refreshIfInactive());
+
+  function onDataRequest(opts: { page: number; sort: { field: string; dir: "asc" | "desc" }[] }) {
+    return ctx
+      .fetch<R>(
+        //  @ts-expect-error i dont know
+        columns.map((c) => c.field),
+        { limit: pageSize, offset: (opts.page - 1) * pageSize }
+      )
+      .then((data) => ({ last_page: pages, data }));
+  }
 
   function onSelect(valueMap: Map<number, unknown[]>) {
     ctx.filter(
@@ -57,5 +82,8 @@
     formatter: (cell) => column.field.valueAsString(cell.getValue())
   }))}
   {data}
+  {pages}
+  {pageSize}
   {onSelect}
+  {onDataRequest}
 ></TableView>

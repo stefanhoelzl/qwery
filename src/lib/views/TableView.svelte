@@ -5,17 +5,37 @@
   interface Props {
     columns: ColumnDefinition[];
     data: unknown[][];
+    pageSize: number;
+    pages: number;
     onSelect?: (values: Map<number, unknown[]>) => void;
+    onDataRequest?: (opts: {
+      page: number;
+      sort: { field: string; dir: "asc" | "desc" }[];
+    }) => Promise<{ last_page: number; data: unknown[][] }>;
   }
 
-  let { columns, data, onSelect = undefined }: Props = $props();
+  let {
+    columns,
+    data,
+    pageSize,
+    pages,
+    onSelect = undefined,
+    onDataRequest = undefined
+  }: Props = $props();
 
   let tableElement: HTMLDivElement;
   let table: TabulatorFull | undefined = $state(undefined);
 
   $effect(() => {
-    table?.setData(data);
+    if (data.length > 0) table?.setData("trigger ajax");
+    else table?.setData([]);
   });
+
+  function request(page: number, sort: { field: string; dir: "asc" | "desc" }[]) {
+    if (page === 1 || onDataRequest === undefined)
+      return new Promise((r) => r({ last_page: pages, data }));
+    return onDataRequest({ page, sort });
+  }
 
   function delayed(delay: number, cb: () => void) {
     let timeout: number | undefined = undefined;
@@ -27,7 +47,6 @@
   }
 
   function onRangeChanged() {
-    tableElement.focus();
     const map = table?.getRanges().reduce((map, range) => {
       range
         .getColumns()
@@ -52,7 +71,15 @@
       height: "100%",
       selectableRange: true,
       selectableRangeClearCells: true,
-      selectableRangeInitializeDefault: false
+      selectableRangeInitializeDefault: false,
+      sortMode: "remote",
+      ajaxRequestFunc: (
+        url,
+        req,
+        opts: { page: number; size: number; sort: { field: string; dir: "asc" | "desc" }[] }
+      ) => request(opts.page, opts.sort),
+      progressiveLoad: "scroll",
+      paginationSize: pageSize,
     });
     uninitializedTable.on("rangeChanged", delayed(100, onRangeChanged));
     uninitializedTable.on("tableBuilt", () => {
