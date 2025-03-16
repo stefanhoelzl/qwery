@@ -1,5 +1,7 @@
 import Grid from "./views/Grid.svelte";
 import GridCell from "$lib/views/GridCell.svelte";
+import Tabs from "$lib/views/Tabs.svelte";
+import Tab from "$lib/views/Tab.svelte";
 import type { Filter } from "$lib/QueryBuilder";
 import type { PanelContext } from "$lib/DashboardManager.svelte";
 import type { Component, ComponentProps } from "svelte";
@@ -83,5 +85,19 @@ export function grid<LayoutProps extends AnyProps>(opts: {
     layout: opts.layout,
     wrapper: GridCell,
     content: opts.content
+  });
+}
+
+let tabId = 0;
+export function tabs<LayoutProps extends AnyProps>(opts: {
+  layout?: LayoutProps;
+  content: PanelOrContainer<{ tab: string }>[];
+}): Container<ComponentProps<typeof Tabs>, ComponentProps<typeof Tab>, LayoutProps | undefined> {
+  return container({
+    component: Tabs,
+    props: { id: ++tabId, tabs: opts.content.map((c) => c.layout.tab) },
+    layout: opts.layout,
+    wrapper: Tab,
+    content: opts.content.map((c, idx) => ({ ...c, layout: { position: idx, id: tabId } }))
   });
 }
