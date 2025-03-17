@@ -47,7 +47,7 @@
     "sass-embedded": "^1.85.1",
     "svelte": "^5.0.0",
     "svelte-check": "^4.0.0",
-    "tabulator-tables": "git+https://github.com/stefanhoelzl/tabulator.git#fixed",
+    "tabulator-tables": "github:stefanhoelzl/tabulator#fixed",
     "tailwindcss": "^4.0.9",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.20.0",
