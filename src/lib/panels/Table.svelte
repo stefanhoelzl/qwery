@@ -25,6 +25,8 @@
   let data: R[] = $state([]);
   let pages: number = $state(1);
 
+  let orderBy: [DataField<unknown>, "asc" | "desc"][] = [];
+
   ctx.onUpdate(async () => {
     if (!ctx.isActive) {
       const distinctFields = columns
@@ -39,7 +41,7 @@
         .fetch<R>(
           //  @ts-expect-error i dont know
           columns.map((c) => c.field),
-          { limit: pageSize }
+          { limit: pageSize, orderBy }
         )
         .then((updatedData) => {
           data = updatedData;
@@ -48,11 +50,12 @@
   });
 
   function onDataRequest(opts: { page: number; sort: { field: string; dir: "asc" | "desc" }[] }) {
+    orderBy = opts.sort.map((s) => ([columns[parseInt(s.field)].field, s.dir]))
     return ctx
       .fetch<R>(
         //  @ts-expect-error i dont know
         columns.map((c) => c.field),
-        { limit: pageSize, offset: (opts.page - 1) * pageSize }
+        { limit: pageSize, offset: (opts.page - 1) * pageSize, orderBy }
       )
       .then((data) => ({ last_page: pages, data }));
   }

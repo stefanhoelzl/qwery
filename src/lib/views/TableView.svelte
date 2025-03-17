@@ -32,7 +32,7 @@
   });
 
   function request(page: number, sort: { field: string; dir: "asc" | "desc" }[]) {
-    if (page === 1 || onDataRequest === undefined)
+    if ((page === 1 && sort.length === 0) || onDataRequest === undefined)
       return new Promise((r) => r({ last_page: pages, data }));
     return onDataRequest({ page, sort });
   }
@@ -80,6 +80,7 @@
       ) => request(opts.page, opts.sort),
       progressiveLoad: "scroll",
       paginationSize: pageSize,
+      dataLoader: false,
     });
     uninitializedTable.on("rangeChanged", delayed(100, onRangeChanged));
     uninitializedTable.on("tableBuilt", () => {
