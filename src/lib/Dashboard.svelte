@@ -39,7 +39,6 @@
       <FilterPanel
         ctx={manager.createPanel()}
         {filter}
-        ondelete={() => manager.filterManager.dropFilter(filter.dataField)}
       ></FilterPanel>
     {/each}
   {/snippet}

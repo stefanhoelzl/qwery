@@ -14,15 +14,14 @@
   interface Props {
     filter: DataFieldFilter<unknown>;
     ctx: PanelContext;
-    ondelete: () => void;
   }
 
-  const { ondelete, filter, ctx }: Props = $props();
+  const { filter, ctx }: Props = $props();
 
   onDestroy(() => ctx.drop());
 </script>
 
-<FilterView label={filter.dataField.label} {ondelete}>
+<FilterView label={filter.dataField.label} ondelete={() => ctx.dropFilter(filter.dataField)}>
   {#if filter instanceof RangeFilter}
     <NumberRange
       min={filter.min}
