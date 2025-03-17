@@ -3,7 +3,7 @@ import GridCell from "$lib/views/GridCell.svelte";
 import Tabs from "$lib/views/Tabs.svelte";
 import Tab from "$lib/views/Tab.svelte";
 import type { Filter } from "$lib/QueryBuilder";
-import type { PanelContext } from "$lib/DashboardManager.svelte";
+import type { PanelContext, ContainerContext } from "$lib/DashboardManager.svelte";
 import type { Component, ComponentProps } from "svelte";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,7 +23,7 @@ export interface Container<
   LayoutProps extends AnyProps | undefined
 > {
   type: "container";
-  component: Component<Props>;
+  component: Component<Props & { ctx: ContainerContext }>;
   props: Props;
   layout: LayoutProps;
   wrapper: Component<WrapperProps>;
@@ -54,7 +54,7 @@ export function container<
   WrapperProps extends AnyProps,
   LayoutProps extends AnyProps | undefined
 >(opts: {
-  component: Component<Props>;
+  component: Component<Props & { ctx: ContainerContext }>;
   props: Props;
   layout: LayoutProps;
   wrapper: Component<WrapperProps>;
@@ -92,7 +92,11 @@ let tabId = 0;
 export function tabs<LayoutProps extends AnyProps>(opts: {
   layout?: LayoutProps;
   content: PanelOrContainer<{ tab: string }>[];
-}): Container<ComponentProps<typeof Tabs>, ComponentProps<typeof Tab>, LayoutProps | undefined> {
+}): Container<
+  Exclude<ComponentProps<typeof Tabs>, "ctx">,
+  ComponentProps<typeof Tab>,
+  LayoutProps | undefined
+> {
   return container({
     component: Tabs,
     props: { id: ++tabId, tabs: opts.content.map((c) => c.layout.tab) },

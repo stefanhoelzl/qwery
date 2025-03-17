@@ -4,7 +4,7 @@
   import Actions from "$lib/views/Actions.svelte";
   import { onMount } from "svelte";
   import type { PanelOrContainer, AnyProps, Container, Panel } from "$lib/panels";
-  import type {ContainerContext, PanelContext} from "$lib/DashboardManager.svelte";
+  import type { ContainerContext, PanelContext } from "$lib/DashboardManager.svelte";
   import { manager, dashboard } from "../project/dashboard";
 
   onMount(() => manager.triggerUpdates());
@@ -14,7 +14,7 @@
   {#if def.type === "container"}
     {@render containerSnippet(def, container.createContainer())}
   {:else if def.type === "panel"}
-    {@render panelSnippet(def, manager.createPanel({filter: def.filter, container}))}
+    {@render panelSnippet(def, manager.createPanel({ filter: def.filter, container }))}
   {/if}
 {/snippet}
 
@@ -29,11 +29,7 @@
 {/snippet}
 
 {#snippet panelSnippet(def: Panel<AnyProps, AnyProps>, ctx: PanelContext)}
-  <svelte:component
-    this={def.component}
-    {...def.props}
-    {ctx}
-  ></svelte:component>
+  <svelte:component this={def.component} {...def.props} {ctx}></svelte:component>
 {/snippet}
 
 <Header>

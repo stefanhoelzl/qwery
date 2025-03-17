@@ -4,9 +4,9 @@ import { json } from "@sveltejs/kit";
 let db: DuckDBInstance | undefined = undefined;
 
 function parseDbValue(v: unknown) {
-  if(typeof v === "bigint") return parseInt(v.toString());
-  if(v instanceof DuckDBTimestampValue) return v.toString()
-  return v
+  if (typeof v === "bigint") return parseInt(v.toString());
+  if (v instanceof DuckDBTimestampValue) return v.toString();
+  return v;
 }
 
 export async function POST({ request }) {

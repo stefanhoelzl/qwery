@@ -50,7 +50,7 @@
   });
 
   function onDataRequest(opts: { page: number; sort: { field: string; dir: "asc" | "desc" }[] }) {
-    orderBy = opts.sort.map((s) => ([columns[parseInt(s.field)].field, s.dir]))
+    orderBy = opts.sort.map((s) => [columns[parseInt(s.field)].field, s.dir]);
     return ctx
       .fetch<R>(
         //  @ts-expect-error i dont know

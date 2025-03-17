@@ -80,7 +80,7 @@
       ) => request(opts.page, opts.sort),
       progressiveLoad: "scroll",
       paginationSize: pageSize,
-      dataLoader: false,
+      dataLoader: false
     });
     uninitializedTable.on("rangeChanged", delayed(100, onRangeChanged));
     uninitializedTable.on("tableBuilt", () => {

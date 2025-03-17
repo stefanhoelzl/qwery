@@ -32,7 +32,7 @@ type FetchOpts = {
 };
 
 export interface PanelContext {
-  type: "panel",
+  type: "panel";
   isActive: boolean;
   isVisible: boolean;
   pendingUpdate: boolean;
@@ -45,8 +45,8 @@ export interface PanelContext {
 }
 
 export interface ContainerContext {
-  type: "container",
-  children: (ContainerContext | PanelContext)[],
+  type: "container";
+  children: (ContainerContext | PanelContext)[];
   onVisibilityChange: (child: number, visible: boolean) => void;
   createContainer: () => ContainerContext;
 }
@@ -72,35 +72,35 @@ export class DashboardManager {
 
   public createBaseContainer(): ContainerContext {
     const _allChildPanels = (ctx: ContainerContext | PanelContext): PanelContext[] => {
-      if(ctx.type === "panel") return [ctx];
+      if (ctx.type === "panel") return [ctx];
       return ctx.children
-        .map(c => _allChildPanels(c))
-        .reduce((prev, curr) => ([...prev, ...curr]), []);
-    }
+        .map((c) => _allChildPanels(c))
+        .reduce((prev, curr) => [...prev, ...curr], []);
+    };
 
     const _createContainer = () => {
-        const ctx: ContainerContext = {
-          type: "container",
-          children: [],
-          onVisibilityChange: (childIdx, visible) => {
-            _allChildPanels(ctx.children[childIdx]).map(p => {
-              p.isVisible = visible;
-              if(visible && p.pendingUpdate) p.update();
-            })
-          },
-          createContainer: () => {
-            const child = _createContainer()
-            ctx.children.push(child);
-            return child;
-          },
-        };
-        return ctx;
-    }
+      const ctx: ContainerContext = {
+        type: "container",
+        children: [],
+        onVisibilityChange: (childIdx, visible) => {
+          _allChildPanels(ctx.children[childIdx]).map((p) => {
+            p.isVisible = visible;
+            if (visible && p.pendingUpdate) p.update();
+          });
+        },
+        createContainer: () => {
+          const child = _createContainer();
+          ctx.children.push(child);
+          return child;
+        }
+      };
+      return ctx;
+    };
 
     return _createContainer();
   }
 
-  public createPanel(opts?: { filter?: Filter, container?: ContainerContext }): PanelContext {
+  public createPanel(opts?: { filter?: Filter; container?: ContainerContext }): PanelContext {
     const filterCtx = this.filterManager.createContext();
     const id = Math.max(0, ...Array.from(this.updateHandler.keys())) + 1;
     const filters = opts?.filter ? [opts.filter] : [];
@@ -133,11 +133,10 @@ export class DashboardManager {
         filterCtx.dropFilter(dataField);
       },
       update: () => {
-        if(ctx.isVisible) {
-          this.updateHandler.get(id)?.forEach(cb => cb());
+        if (ctx.isVisible) {
+          this.updateHandler.get(id)?.forEach((cb) => cb());
           ctx.pendingUpdate = false;
-        }
-        else ctx.pendingUpdate = true;
+        } else ctx.pendingUpdate = true;
       },
       onUpdate: (cb: () => void) => this.updateHandler.get(id)?.push(() => cb()),
       drop: () => {

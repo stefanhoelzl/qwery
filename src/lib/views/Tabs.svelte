@@ -1,19 +1,23 @@
 <script lang="ts">
   import { onMount, type Snippet } from "svelte";
-  import {ChevronLeft, ChevronRight} from "lucide-svelte";
-  import type {ContainerContext} from "$lib/DashboardManager.svelte";
+  import { ChevronLeft, ChevronRight } from "lucide-svelte";
+  import type { ContainerContext } from "$lib/DashboardManager.svelte";
 
   interface Props {
     tabs: string[];
     id: number;
     children?: Snippet;
-    ctx: ContainerContext;
+    ctx?: ContainerContext;
   }
 
   const { children, tabs, id, ctx }: Props = $props();
   let selectedIdx = $state(0);
 
-  onMount(() => Array(tabs.length).keys().forEach(idx => ctx.onVisibilityChange(idx, idx === selectedIdx)))
+  onMount(() =>
+    Array(tabs.length)
+      .keys()
+      .forEach((idx) => ctx?.onVisibilityChange(idx, idx === selectedIdx))
+  );
 </script>
 
 <div
@@ -39,10 +43,10 @@
         aria-controls={`tabs-${id}-${idx}`}
         role="tab"
         onclick={() => {
-          if(selectedIdx === idx) return;
-          ctx.onVisibilityChange(selectedIdx, false);
-          ctx.onVisibilityChange(idx, true);
-          selectedIdx = idx
+          if (selectedIdx === idx) return;
+          ctx?.onVisibilityChange(selectedIdx, false);
+          ctx?.onVisibilityChange(idx, true);
+          selectedIdx = idx;
         }}
       >
         <!-- ADD ICON -->
