@@ -1,7 +1,11 @@
 <script lang="ts">
+  import {onMount} from "svelte";
   // import ThemeSwitcher from "$lib/views/ThemeSwitcher.svelte";
   import Header from "$lib/views/Header.svelte";
   import Dashboard from "$lib/Dashboard.svelte";
+  import { dashboard, manager } from "$lib/../project/dashboard";
+
+  onMount(() => manager.triggerUpdates());
 </script>
 
 <div class="flex h-screen flex-col bg-gray-50 dark:bg-neutral-900">
@@ -23,5 +27,5 @@
       <!-- <ThemeSwitcher></ThemeSwitcher> -->
     {/snippet}
   </Header>
-  <Dashboard></Dashboard>
+  <Dashboard {dashboard} {manager}></Dashboard>
 </div>

@@ -1,13 +1,16 @@
-<script lang="ts">
+<script lang="ts" generics="D extends AnyProps">
   import Header from "$lib/views/Header.svelte";
   import FilterPanel from "$lib/panels/FilterPanel.svelte";
   import Actions from "$lib/views/Actions.svelte";
-  import { onMount } from "svelte";
   import type { PanelOrContainer, AnyProps, Container, Panel } from "$lib/panels";
-  import type { ContainerContext, PanelContext } from "$lib/DashboardManager.svelte";
-  import { manager, dashboard } from "../project/dashboard";
+  import { type ContainerContext, type DashboardManager, type PanelContext } from "$lib/DashboardManager.svelte";
 
-  onMount(() => manager.triggerUpdates());
+  interface Props {
+    dashboard: PanelOrContainer<D>;
+    manager: DashboardManager
+  }
+  const {dashboard, manager}: Props = $props();
+
 </script>
 
 {#snippet panelOrContainer(def: PanelOrContainer<AnyProps>, container: ContainerContext)}
@@ -19,17 +22,17 @@
 {/snippet}
 
 {#snippet containerSnippet(def: Container<AnyProps, AnyProps, AnyProps>, ctx: ContainerContext)}
-  <svelte:component this={def.component} {...def.props} {ctx}>
+  <def.component {...def.props} {ctx}>
     {#each def.content as child, idx (idx)}
-      <svelte:component this={def.wrapper} {...child.layout}>
+      <def.wrapper {...child.layout}>
         {@render panelOrContainer(child, ctx)}
-      </svelte:component>
+      </def.wrapper>
     {/each}
-  </svelte:component>
+  </def.component>
 {/snippet}
 
 {#snippet panelSnippet(def: Panel<AnyProps, AnyProps>, ctx: PanelContext)}
-  <svelte:component this={def.component} {...def.props} {ctx}></svelte:component>
+  <def.component {...def.props} {ctx}></def.component>
 {/snippet}
 
 <Header>
