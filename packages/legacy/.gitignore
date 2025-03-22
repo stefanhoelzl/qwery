@@ -1,4 +1,8 @@
 node_modules
+**/*.ddb
+*+/*.ddb.tmp/**
+static/js/**
+image.tar
 
 # Output
 .output
@@ -7,7 +11,6 @@ node_modules
 .wrangler
 /.svelte-kit
 /build
-
 
 # OS
 .DS_Store

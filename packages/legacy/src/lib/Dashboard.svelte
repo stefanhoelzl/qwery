@@ -36,10 +36,7 @@
   {#snippet left()}
     <Actions></Actions>
     {#each manager.filters as filter (filter.dataField.id)}
-      <FilterPanel
-        ctx={manager.createPanel()}
-        {filter}
-      ></FilterPanel>
+      <FilterPanel ctx={manager.createPanel()} {filter}></FilterPanel>
     {/each}
   {/snippet}
 </Header>
