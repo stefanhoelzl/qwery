@@ -1,9 +1,11 @@
 <script lang="ts">
   import {onMount} from "svelte";
   // import ThemeSwitcher from "$lib/views/ThemeSwitcher.svelte";
-  import Header from "$lib/views/Header.svelte";
-  import Dashboard from "$lib/Dashboard.svelte";
-  import { dashboard, manager } from "$lib/../project/dashboard";
+  import { Header } from "@qwery/dashboard";
+  import { Dashboard, DashboardManager } from "@qwery/dashboard";
+  import { dashboard, table } from "$lib/../project/dashboard";
+
+  const manager = new DashboardManager(table)
 
   onMount(() => manager.triggerUpdates());
 </script>
