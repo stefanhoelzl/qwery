@@ -1,20 +1,7 @@
-import { sveltekit } from "@sveltejs/kit/vite";
-import { defineConfig } from "vitest/config";
-import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
+import {qwery} from "@qwery/vite-plugin";
+
 
 export default defineConfig({
-  plugins: [sveltekit(), tailwindcss()],
-  css: {
-    preprocessorOptions: {
-      scss: {
-        // tabulator uses these deprecated features in its sass files.
-        silenceDeprecations: ["global-builtin", "color-functions", "import"]
-      }
-    }
-  },
-  build: {
-    rollupOptions: {
-      external: ["@duckdb/node-api"]
-    }
-  },
+  plugins: [qwery({db: process.env["DB"]!})],
 });

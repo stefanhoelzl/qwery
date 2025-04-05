@@ -6,7 +6,6 @@
   import { dashboard, table } from "$lib/../project/dashboard";
 
   const manager = new DashboardManager(table)
-
   onMount(() => manager.triggerUpdates());
 </script>
 

@@ -1,0 +1,31 @@
+{
+  "name": "@qwery/vite-plugin",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/plugin.js",
+      "types": "./dist/plugin.d.ts"
+    }
+  },
+  "dependencies": {
+    "@duckdb/node-api": "^1.2.1-alpha.16",
+    "@sveltejs/kit": "^2.16.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.0",
+    "@tailwindcss/vite": "^4.0.9",
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0"
+  },
+  "devDependencies": {
+    "vite-plugin-dts": "^4.5.3"
+  }
+}
