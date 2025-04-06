@@ -19,9 +19,8 @@
 	}
 	const { dashboard, manager }: Props = $props();
 
-	onMount(() => {
-		HSStaticMethods.autoInit();
-	});
+	onMount(() => HSStaticMethods.autoInit());
+	onMount(() => manager.triggerUpdates());
 
 	if (import.meta.hot) {
 		import.meta.hot.on('vite:afterUpdate', () => {
