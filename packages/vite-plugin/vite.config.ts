@@ -10,9 +10,12 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        "path",
+        "node:fs/promises",
         "@qwery/server/middleware",
         /@sveltejs.*/,
         "@tailwindcss/vite",
+        "@duckdb/node-api",
       ]
     }
   },
