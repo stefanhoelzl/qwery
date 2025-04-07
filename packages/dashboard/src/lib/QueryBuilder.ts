@@ -99,6 +99,12 @@ export class StringDimension extends Dimension<string> {
 	}
 }
 
+export class StringMetric extends Metric<string> {
+	valueAsSql(value: string): string {
+		return `'${value.replaceAll("'", "''")}'`;
+	}
+}
+
 export class NumberDimension extends Dimension<number> {
 	valueAsSql(value: number): string {
 		return value.toString();

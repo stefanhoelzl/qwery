@@ -4,6 +4,7 @@ export { default as Table } from '$lib/panels/Table.svelte';
 export { default as BarChart } from '$lib/panels/BarChart.svelte';
 export {
 	StringDimension,
+	StringMetric,
 	NumberMetric,
 	NotNullFilter,
 	NumberDimension
