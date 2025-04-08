@@ -9,16 +9,15 @@ import { DuckDBInstance } from "@duckdb/node-api";
 const Containerfile = `
 FROM node:23-bookworm-slim
 
+RUN cd /server && npm install @duckdb/node-api@1.2.1-alpha.17
+
 COPY ui /site
 COPY server /server
 COPY data.ddb /data.ddb
 
-RUN cd /server && npm install @duckdb/node-api@1.2.1-alpha.17
-
+ENV SITE=/site
 ENV DB=/data.ddb
 ENV PORT=80
-
-EXPOSE 80
 ENV NODE_ENV=production
 
 CMD [ "node", "/server/main.js" ]
