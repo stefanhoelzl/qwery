@@ -8,8 +8,7 @@
     "preview": "vite preview"
   },
   "files": [
-    "dist",
-    "Containerfile"
+    "dist"
   ],
   "exports": {
     ".": {
