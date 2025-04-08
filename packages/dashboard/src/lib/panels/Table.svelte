@@ -35,8 +35,9 @@
 				.map((f) => f.sql);
 			const distinctClause =
 				distinctFields.length === 1 ? distinctFields[0] : `(${distinctFields.join(', ')})`;
-			const countResult = await ctx.fetch([new NumberMetric(`count(distinct ${distinctClause})`)]);
-			pages = Math.ceil(countResult[0][0] / pageSize);
+			const countResult = distinctFields.length === 0 ? [] : await ctx.fetch([new NumberMetric(`count(distinct ${distinctClause})`)]);
+			const count = countResult.length > 0 ? countResult[0][0] : 0;
+			pages = Math.ceil(count / pageSize);
 			ctx
 				.fetch<R>(
 					//  @ts-expect-error i dont know
