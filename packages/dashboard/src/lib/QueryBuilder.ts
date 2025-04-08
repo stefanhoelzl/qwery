@@ -111,6 +111,7 @@ export class NumberDimension extends Dimension<number> {
 	}
 
 	valueAsString(value: number): string {
+		if(value === null) return "<null>";
 		return value.toLocaleString();
 	}
 }
@@ -121,6 +122,7 @@ export class NumberMetric extends Metric<number> {
 	}
 
 	valueAsString(value: number): string {
+		if(value === null) return "<null>";
 		return this.opts?.formatter?.(value) || value.toLocaleString();
 	}
 }
