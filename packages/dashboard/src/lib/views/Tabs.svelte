@@ -7,16 +7,24 @@
 		tabs: string[];
 		id: number;
 		children?: Snippet;
-		ctx?: ContainerContext;
+		ctx: ContainerContext;
 	}
 
 	const { children, tabs, id, ctx }: Props = $props();
 	let selectedIdx = $state(0);
 
+	ctx.onVisibilityChange = (visible: boolean) => {
+		if(visible) {
+			ctx.changedChildVisibility(selectedIdx, visible);
+			return true;
+		}
+		return false;
+	}
+
 	onMount(() =>
 		Array(tabs.length)
 			.keys()
-			.forEach((idx) => ctx?.onVisibilityChange(idx, idx === selectedIdx))
+			.forEach((idx) => ctx?.changedChildVisibility(idx, idx === selectedIdx))
 	);
 </script>
 
@@ -44,8 +52,8 @@
 				role="tab"
 				onclick={() => {
 					if (selectedIdx === idx) return;
-					ctx?.onVisibilityChange(selectedIdx, false);
-					ctx?.onVisibilityChange(idx, true);
+					ctx?.changedChildVisibility(selectedIdx, false);
+					ctx?.changedChildVisibility(idx, true);
 					selectedIdx = idx;
 				}}
 			>

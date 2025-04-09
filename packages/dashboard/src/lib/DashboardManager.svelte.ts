@@ -47,7 +47,8 @@ export interface PanelContext {
 export interface ContainerContext {
 	type: 'container';
 	children: (ContainerContext | PanelContext)[];
-	onVisibilityChange: (child: number, visible: boolean) => void;
+	changedChildVisibility: (child: number, visible: boolean) => void;
+	onVisibilityChange?: (visible: boolean) => boolean;
 	createContainer: () => ContainerContext;
 }
 
@@ -71,22 +72,20 @@ export class DashboardManager {
 	}
 
 	public createBaseContainer(): ContainerContext {
-		const _allChildPanels = (ctx: ContainerContext | PanelContext): PanelContext[] => {
-			if (ctx.type === 'panel') return [ctx];
-			return ctx.children
-				.map((c) => _allChildPanels(c))
-				.reduce((prev, curr) => [...prev, ...curr], []);
-		};
-
 		const _createContainer = () => {
 			const ctx: ContainerContext = {
 				type: 'container',
 				children: [],
-				onVisibilityChange: (childIdx, visible) => {
-					_allChildPanels(ctx.children[childIdx]).map((p) => {
-						p.isVisible = visible;
-						if (visible && p.pendingUpdate) p.update();
-					});
+				changedChildVisibility: (childIdx, visible) => {
+					const child = ctx.children[childIdx];
+					if(child.type === "panel") {
+						child.isVisible = visible;
+						if (visible && child.pendingUpdate) child.update();
+					} else if (!child.onVisibilityChange?.(visible)) {
+						child.children.forEach((
+							_, idx) => child.changedChildVisibility(idx, visible)
+						)
+					}
 				},
 				createContainer: () => {
 					const child = _createContainer();
