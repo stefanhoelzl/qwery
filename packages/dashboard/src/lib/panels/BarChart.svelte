@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import type { PanelContext } from '$lib/DashboardManager.svelte';
 	import type { DataField } from '$lib/QueryBuilder';
+  import Loading from '$lib/views/Loading.svelte';
 
 	interface Props {
 		ctx: PanelContext;
@@ -11,23 +12,26 @@
 	}
 	const { ctx, x, y }: Props = $props();
 
+  let loading = $state(false);
+
 	let chartElement: HTMLDivElement;
 	let chart: echarts.ECharts;
 
-	ctx.onUpdate(() => {
-		ctx.fetch({ x, y }).then((data) => {
-			chart.setOption({
-				xAxis: {
-					data: data.map((r) => r.x)
-				},
-				series: [
-					{
-						type: 'bar',
-						data: data.map((r) => r.y)
-					}
-				]
-			});
-		});
+	ctx.onUpdate(async () => {
+    loading = true;
+		const data = await ctx.fetch({ x, y })
+    chart.setOption({
+      xAxis: {
+        data: data.map((r) => r.x)
+      },
+      series: [
+        {
+          type: 'bar',
+          data: data.map((r) => r.y)
+        }
+      ]
+    });
+    loading = false;
 	});
 
 	onMount(() => {
@@ -50,7 +54,9 @@
 	});
 </script>
 
-<div bind:this={chartElement} class="bar"></div>
+<Loading {loading}>
+  <div bind:this={chartElement} class="bar"></div>
+</Loading>
 
 <style>
 	.bar {

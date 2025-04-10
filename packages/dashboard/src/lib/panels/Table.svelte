@@ -1,6 +1,7 @@
 <script module lang="ts">
 	import type { DataField } from '$lib/QueryBuilder';
 	import type { PanelContext } from '$lib/DashboardManager.svelte';
+	import Loading from '$lib/views/Loading.svelte';
 
 	export type Columns<R extends unknown[]> = {
 		[K in keyof R]: {
@@ -24,11 +25,13 @@
 	const pageSize = 200;
 	let data: R[] = $state([]);
 	let pages: number = $state(1);
+	let loading: boolean = $state(false);
 
 	let orderBy: [DataField<unknown>, 'asc' | 'desc'][] = [];
 
 	ctx.onUpdate(async () => {
 		if (!ctx.isActive) {
+			loading = true;
 			const distinctFields = columns
 				.map((c) => c.field)
 				.filter((f) => !f.aggregation)
@@ -38,15 +41,13 @@
 			const countResult = distinctFields.length === 0 ? [] : await ctx.fetch([new NumberMetric(`count(distinct ${distinctClause})`)]);
 			const count = countResult.length > 0 ? countResult[0][0] : 0;
 			pages = Math.ceil(count / pageSize);
-			ctx
+			data = await ctx
 				.fetch<R>(
 					//  @ts-expect-error i dont know
 					columns.map((c) => c.field),
 					{ limit: pageSize, orderBy }
-				)
-				.then((updatedData) => {
-					data = updatedData;
-				});
+				);
+			loading = false;
 		}
 	});
 
@@ -76,16 +77,18 @@
 	}
 </script>
 
-<TableView
-	columns={Object.entries(columns).map(([key, column]) => ({
-		field: key.toString(),
-		title: column.field.label,
-		width: column.width ? (column.width > 1 ? column.width : `${column.width * 100}%`) : undefined,
-		formatter: (cell) => column.field.valueAsString(cell.getValue())
-	}))}
-	{data}
-	{pages}
-	{pageSize}
-	{onSelect}
-	{onDataRequest}
-></TableView>
+<Loading {loading}>
+	<TableView
+		columns={Object.entries(columns).map(([key, column]) => ({
+			field: key.toString(),
+			title: column.field.label,
+			width: column.width ? (column.width > 1 ? column.width : `${column.width * 100}%`) : undefined,
+			formatter: (cell) => column.field.valueAsString(cell.getValue())
+		}))}
+		{data}
+		{pages}
+		{pageSize}
+		{onSelect}
+		{onDataRequest}
+	></TableView>
+</Loading>
