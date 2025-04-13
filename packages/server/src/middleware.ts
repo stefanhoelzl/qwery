@@ -1,5 +1,11 @@
 import type { ServerResponse, IncomingMessage } from "node:http";
-import { DuckDBInstance, DuckDBTimestampValue } from "@duckdb/node-api";
+import {
+  DuckDBInstance,
+  DuckDBTimestampValue,
+  DuckDBTimestampTZValue,
+  DuckDBIntervalValue,
+  DuckDBUUIDValue
+} from "@duckdb/node-api";
 import {Server} from "connect";
 
 interface QueryMiddlewareOpts {
@@ -9,6 +15,9 @@ interface QueryMiddlewareOpts {
 function parseDbValue(v: unknown) {
   if (typeof v === "bigint") return parseInt(v.toString());
   if (v instanceof DuckDBTimestampValue) return v.toString();
+  if (v instanceof DuckDBTimestampTZValue) return v.toString();
+  if (v instanceof DuckDBIntervalValue) return v.toString();
+  if (v instanceof DuckDBUUIDValue) return v.toString();
   return v;
 }
 
