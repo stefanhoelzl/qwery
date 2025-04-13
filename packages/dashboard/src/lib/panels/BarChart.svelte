@@ -9,8 +9,10 @@
 		ctx: PanelContext;
 		x: DataField<unknown>;
 		y: DataField<unknown>;
+    orderBy?: [DataField<unknown>, "asc" | "desc"][];
+    log?: number;
 	}
-	const { ctx, x, y }: Props = $props();
+	const { ctx, x, y, orderBy, log }: Props = $props();
 
   let loading = $state(false);
 
@@ -19,7 +21,7 @@
 
 	ctx.onUpdate(async () => {
     loading = true;
-		const data = await ctx.fetch({ x, y })
+		const data = await ctx.fetch({ x, y }, {orderBy})
     chart.setOption({
       xAxis: {
         data: data.map((r) => r.x)
@@ -38,7 +40,11 @@
 		chart = echarts.init(chartElement);
 		chart.setOption({
 			xAxis: { data: [] },
-			yAxis: {},
+			yAxis: {
+        type: log ? "log" : undefined,
+        logBase: log ? log : undefined,
+        min: log ? 1 : 0,
+      },
 			tooltip: {},
 			series: [],
 			grid: {
