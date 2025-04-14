@@ -10,9 +10,10 @@
 		x: DataField<unknown>;
 		y: DataField<unknown>;
     orderBy?: [DataField<unknown>, "asc" | "desc"][];
+    ymax?: number;
     log?: number;
 	}
-	const { ctx, x, y, orderBy, log }: Props = $props();
+	const { ctx, x, y, orderBy, log, ymax }: Props = $props();
 
   let loading = $state(false);
 
@@ -44,6 +45,7 @@
         type: log ? "log" : undefined,
         logBase: log ? log : undefined,
         min: log ? 1 : 0,
+        max: ymax ? ymax: "dataMax",
       },
 			tooltip: {},
 			series: [],
