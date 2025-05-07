@@ -1,8 +1,9 @@
 import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from "@tailwindcss/vite";
-import type { PreviewServer, ViteDevServer, ResolvedConfig, UserConfig } from "vite";
+import type { PreviewServer, ViteDevServer, UserConfig } from "vite";
 import {register} from "@qwery/server/middleware";
-import {resolve} from "path";
+import {resolve, join} from "path";
+import {cwd} from "process";
 import fs from "node:fs/promises";
 import { DuckDBInstance } from "@duckdb/node-api";
 
@@ -24,19 +25,18 @@ CMD [ "node", "/server/main.js" ]
 `
 
 export function qwery() {
-  let sqlFile: string;
-  let dbFile: string;
+  let sqlFile = resolve(cwd(), "src/data.sql");
+  let dbFile = resolve(cwd(), "dist/data.ddb");
 
   return [
     {
       name: 'qwery',
       config(config: UserConfig) {
-        if(!config.build) config.build = {};
-        config.build.outDir = "dist/ui";
-      },
-      configResolved(config: ResolvedConfig) {
-        sqlFile = resolve(config.root, "src/data.sql");
-        dbFile = resolve(config.root, "dist/data.ddb");
+        config.root = join(import.meta.dirname, "../root");
+        config.build = { outDir: "dist/ui" };
+
+        if(config.resolve === undefined) config.resolve = {};
+        config.resolve.alias = {"@project": resolve(cwd())}
       },
       async configureServer(server: ViteDevServer) {
         await register(server.middlewares, { db: dbFile });

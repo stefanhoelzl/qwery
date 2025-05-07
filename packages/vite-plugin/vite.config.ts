@@ -10,6 +10,7 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        "process",
         "path",
         "node:fs/promises",
         "@qwery/server/middleware",
