@@ -1,4 +1,4 @@
-import Grid from './views/Grid.svelte';
+import Grid from '$lib/views/Grid.svelte';
 import GridCell from '$lib/views/GridCell.svelte';
 import Tabs from '$lib/views/Tabs.svelte';
 import Tab from '$lib/views/Tab.svelte';
@@ -9,99 +9,87 @@ import type { Component, ComponentProps } from 'svelte';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyProps = ComponentProps<any>;
 
-export interface Panel<Props extends AnyProps, Layout extends AnyProps> {
+export interface Panel<Props extends AnyProps> {
 	type: 'panel';
 	component: Component<Props & { ctx: PanelContext }>;
 	props: Props;
 	filter?: Filter;
-	layout: Layout;
 }
 
 export interface Container<
 	Props extends AnyProps,
 	WrapperProps extends AnyProps,
-	LayoutProps extends AnyProps | undefined
 > {
 	type: 'container';
 	component: Component<Props & { ctx: ContainerContext }>;
 	props: Props;
-	layout: LayoutProps;
 	wrapper: Component<WrapperProps>;
-	content: PanelOrContainer<WrapperProps>[];
+	content: {panel: PanelOrContainer, layout: WrapperProps}[];
 }
 
-export type PanelOrContainer<WrapperProps extends AnyProps> =
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	Panel<any, WrapperProps> | Container<AnyProps, AnyProps, WrapperProps>;
+export type PanelOrContainer = Panel<AnyProps> | Container<AnyProps, AnyProps>;
 
-export function panel<Props extends AnyProps, LayoutProps extends AnyProps>(opts: {
+export function panel<Props extends AnyProps>(opts: {
 	component: Component<Props & { ctx: PanelContext }>;
 	props: Props;
 	filter?: Filter;
-	layout: LayoutProps;
-}): Panel<Props, LayoutProps> {
+}): Panel<Props> {
 	return {
 		type: 'panel',
 		component: opts.component,
 		props: opts.props || {},
 		filter: opts.filter,
-		layout: opts.layout || {}
 	};
 }
 
 export function container<
 	Props extends AnyProps,
 	WrapperProps extends AnyProps,
-	LayoutProps extends AnyProps | undefined
 >(opts: {
 	component: Component<Props & { ctx: ContainerContext }>;
 	props: Props;
-	layout: LayoutProps;
 	wrapper: Component<WrapperProps>;
-	content: PanelOrContainer<WrapperProps>[];
-}): Container<Props, WrapperProps, LayoutProps> {
+	content: {panel: PanelOrContainer, layout: WrapperProps}[];
+}): Container<Props, WrapperProps> {
 	return {
 		type: 'container',
 		component: opts.component,
 		props: opts.props || {},
-		layout: opts.layout,
 		wrapper: opts.wrapper,
 		content: opts.content
 	};
 }
 
-export function grid<LayoutProps extends AnyProps>(opts: {
-	props: ComponentProps<typeof Grid>;
-	layout?: LayoutProps;
-	content: PanelOrContainer<ComponentProps<typeof GridCell>>[];
-}): Container<
+export function grid(
+	content: { layout: ComponentProps<typeof GridCell>, panel: PanelOrContainer; }[]
+): Container<
 	ComponentProps<typeof Grid>,
-	ComponentProps<typeof GridCell>,
-	LayoutProps | undefined
+	ComponentProps<typeof GridCell>
 > {
+	const rows = Math.max(
+		...content.map(c => c.layout.row + c.layout["row-span"])
+	)
+	const cols = Math.max(
+		...content.map(c => c.layout.col + c.layout["col-span"])
+	)
+
 	return container({
 		component: Grid,
-		props: opts.props,
-		layout: opts.layout,
+		props: {rows, cols},
 		wrapper: GridCell,
-		content: opts.content
+		content: content
 	});
 }
 
 let tabId = 0;
-export function tabs<LayoutProps extends AnyProps>(opts: {
-	layout?: LayoutProps;
-	content: PanelOrContainer<{ tab: string }>[];
-}): Container<
-	Exclude<ComponentProps<typeof Tabs>, 'ctx'>,
-	ComponentProps<typeof Tab>,
-	LayoutProps | undefined
+export function tabs(content: Record<string, PanelOrContainer>): Container<
+	ComponentProps<typeof Tabs>,
+	ComponentProps<typeof Tab>
 > {
 	return container({
 		component: Tabs,
-		props: { id: ++tabId, tabs: opts.content.map((c) => c.layout.tab) },
-		layout: opts.layout,
+		props: { id: ++tabId, tabs: Object.keys(content) },
 		wrapper: Tab,
-		content: opts.content.map((c, idx) => ({ ...c, layout: { position: idx, id: tabId } }))
+		content: Object.values(content).map((panel, idx) => ({ panel, layout: { position: idx, id: tabId } }))
 	});
 }

@@ -7,13 +7,13 @@
 		tabs: string[];
 		id: number;
 		children?: Snippet;
-		ctx: ContainerContext;
+		ctx?: ContainerContext;
 	}
 
 	const { children, tabs, id, ctx }: Props = $props();
 	let selectedIdx = $state(0);
 
-	ctx.onVisibilityChange = (visible: boolean) => {
+	if(ctx !== undefined) ctx.onVisibilityChange = (visible: boolean) => {
 		if(visible) {
 			ctx.changedChildVisibility(selectedIdx, visible);
 			return true;

@@ -13,8 +13,7 @@
 	import '$lib/dashboard.css';
 
 	interface Props {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		dashboard: PanelOrContainer<any>;
+		dashboard: PanelOrContainer;
 		manager: DashboardManager;
 	}
 	const { dashboard, manager }: Props = $props();
@@ -29,7 +28,7 @@
 	}
 </script>
 
-{#snippet panelOrContainer(def: PanelOrContainer<AnyProps>, container: ContainerContext)}
+{#snippet panelOrContainer(def: PanelOrContainer, container: ContainerContext)}
 	{#if def.type === 'container'}
 		{@render containerSnippet(def, container.createContainer())}
 	{:else if def.type === 'panel'}
@@ -37,17 +36,17 @@
 	{/if}
 {/snippet}
 
-{#snippet containerSnippet(def: Container<AnyProps, AnyProps, AnyProps>, ctx: ContainerContext)}
+{#snippet containerSnippet(def: Container<AnyProps, AnyProps>, ctx: ContainerContext)}
 	<def.component {...def.props} {ctx}>
-		{#each def.content as child, idx (idx)}
-			<def.wrapper {...child.layout}>
-				{@render panelOrContainer(child, ctx)}
+		{#each def.content as {layout, panel}, idx (idx)}
+			<def.wrapper {...layout}>
+				{@render panelOrContainer(panel, ctx)}
 			</def.wrapper>
 		{/each}
 	</def.component>
 {/snippet}
 
-{#snippet panelSnippet(def: Panel<AnyProps, AnyProps>, ctx: PanelContext)}
+{#snippet panelSnippet(def: Panel<AnyProps>, ctx: PanelContext)}
 	<def.component {...def.props} {ctx}></def.component>
 {/snippet}
 
