@@ -1,9 +1,19 @@
 <script lang="ts">
-	import * as echarts from 'echarts';
+	import * as echarts from 'echarts/core';
+  import { BarChart } from 'echarts/charts';
+  import { GridComponent, TooltipComponent } from "echarts/components";
+  import { CanvasRenderer } from 'echarts/renderers';
 	import { onMount } from 'svelte';
 	import type { PanelContext } from '$lib/DashboardManager.svelte';
 	import type { DataField } from '$lib/QueryBuilder';
   import Loading from '$lib/views/Loading.svelte';
+
+  echarts.use([
+    BarChart,
+    CanvasRenderer,
+    GridComponent,
+    TooltipComponent,
+  ]);
 
 	interface Props {
 		ctx: PanelContext;

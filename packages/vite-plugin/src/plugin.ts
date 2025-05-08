@@ -33,7 +33,18 @@ export function qwery() {
       name: 'qwery',
       config(config: UserConfig) {
         config.root = join(import.meta.dirname, "../root");
-        config.build = { outDir: "dist/ui" };
+        config.build = {
+          outDir: "dist/ui",
+          rollupOptions: {
+            output: {
+              manualChunks: {
+                echarts: ["echarts"],
+                preline: ["preline"],
+                tabulator: ["tabulator-tables"],
+              }
+            }
+          }
+        };
 
         if(config.resolve === undefined) config.resolve = {};
         config.resolve.alias = {"@project": resolve(cwd())}
