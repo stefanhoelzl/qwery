@@ -34,7 +34,8 @@ export function qwery() {
       config(config: UserConfig) {
         config.root = join(import.meta.dirname, "../root");
         config.build = {
-          outDir: "dist/ui",
+          outDir: resolve(cwd(), "dist/ui"),
+          emptyOutDir: true,
           rollupOptions: {
             output: {
               manualChunks: {
