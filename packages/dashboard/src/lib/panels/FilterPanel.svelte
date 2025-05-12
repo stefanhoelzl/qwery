@@ -3,7 +3,7 @@
 	import type { PanelContext } from '$lib/DashboardManager.svelte.js';
 	import {
 		type DataFieldFilter,
-		NumberMetric,
+		number_metric,
 		RangeFilter,
 		DataFieldFilterMap
 	} from '$lib/QueryBuilder';
@@ -33,7 +33,7 @@
 	{:else}
 		<Table
 			{ctx}
-			columns={[{ field: filter.dataField }, { field: new NumberMetric('count()'), width: 100 }]}
+			columns={[{ field: filter.dataField }, { field: number_metric('count()'), width: 100 }]}
 		></Table>
 	{/if}
 </FilterView>

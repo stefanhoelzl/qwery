@@ -18,7 +18,7 @@
 
 <script lang="ts" generics="R extends unknown[]">
 	import TableView from '$lib/views/TableView.svelte';
-	import { DataFieldFilterMap, InFilter, NumberMetric, RangeFilter } from '$lib/QueryBuilder';
+	import { DataFieldFilterMap, InFilter, number_metric, RangeFilter } from '$lib/QueryBuilder';
 
 	let { columns, ctx }: Props<R> = $props();
 
@@ -38,7 +38,7 @@
 				.map((f) => f.sql);
 			const distinctClause =
 				distinctFields.length === 1 ? distinctFields[0] : `(${distinctFields.join(', ')})`;
-			const countResult = distinctFields.length === 0 ? [] : await ctx.fetch([new NumberMetric(`count(distinct ${distinctClause})`)]);
+			const countResult = distinctFields.length === 0 ? [] : await ctx.fetch([number_metric(`count(distinct ${distinctClause})`)]);
 			const count = countResult.length > 0 ? countResult[0][0] : 0;
 			pages = Math.ceil(count / pageSize);
 			data = await ctx
