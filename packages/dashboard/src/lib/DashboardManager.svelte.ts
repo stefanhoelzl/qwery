@@ -60,7 +60,7 @@ export class DashboardManager {
 	public filters: DataFieldFilter<unknown>[] = $state([]);
 	private contexts: PanelContext[] = [];
 
-	constructor(private table: string) {
+	constructor() {
 		this.filterManager.onUpdate(() => {
 			this.filters = this.filterManager.filters;
 			this.triggerUpdates();
@@ -113,7 +113,6 @@ export class DashboardManager {
 			pendingUpdate: false,
 			fetch: <R>(fields: { [Key in keyof R]: DataField<R[Key]> }, opts?: FetchOpts) => {
 				return this.queryEngine.query({
-					table: this.table,
 					select: fields,
 					filters: [...filters, ...this.filterManager.filters],
 					...opts

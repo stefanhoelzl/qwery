@@ -5,12 +5,12 @@ import { DatabaseSchema } from "@project/src/schema.ts";
 
 
 const db = new DatabaseSchema();
-const {table, panel} = dashboard(db);
+const {panel} = dashboard(db);
 
 mount(Dashboard, {
   target: document.getElementById('dashboard')!,
   props: {
-    manager: new DashboardManager(table),
+    manager: new DashboardManager(),
     dashboard: panel
   }
 });

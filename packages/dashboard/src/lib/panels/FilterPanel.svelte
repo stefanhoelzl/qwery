@@ -33,7 +33,7 @@
 	{:else}
 		<Table
 			{ctx}
-			columns={[{ field: filter.dataField }, { field: number_metric('count()'), width: 100 }]}
+			columns={[{ field: filter.dataField }, { field: number_metric(() => 'count()'), width: 100 }]}
 		></Table>
 	{/if}
 </FilterView>

@@ -112,6 +112,8 @@ async function buildSchema(schemaFile: string, dbFile: string) {
 
   const tables = (await (await con.run("show tables")).getRows()).map(([t]) => t);
 
+  if(tables.length === 0) throw "imported database has no tables";
+
   await fs.writeFile(schemaFile, `
 import {
   DatabaseSchemaBase, 
@@ -129,7 +131,7 @@ import {
 
     await fs.appendFile(schemaFile, `
 class Table_${table} extends TableSchemaBase {
-  protected name = "${table}";
+  name = "${table}";
 ${ fields.map(f => "  " + f ).join("\n") }
 }
 `);

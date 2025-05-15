@@ -3,8 +3,6 @@ export { default as Dashboard } from '$lib/Dashboard.svelte';
 export { default as Table } from '$lib/panels/Table.svelte';
 export { default as BarChart } from '$lib/panels/BarChart.svelte';
 export {
-	dimension,
-	metric,
 	NotNullFilter,
 	DatabaseSchemaBase,
 	TableSchemaBase,

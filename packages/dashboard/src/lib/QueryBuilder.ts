@@ -8,6 +8,7 @@ type DataFieldOpts<V> = {
 
 export class DataField<D> {
 	constructor(
+		public readonly tables: string[],
 		public readonly id: string,
 		protected readonly opts: DataFieldOpts<D>
 	) {}
@@ -33,14 +34,34 @@ export class DataField<D> {
 			? '<null>'
 			: this.opts.stringFormatter(value);
 	}
+
+
+	private static accessLog: DataField<unknown>[] | undefined;
+
+	static recordAccesses(cb: () => void): DataField<unknown>[] {
+		DataField.accessLog = []
+		cb()
+		const accessLog = Array.from(DataField.accessLog)
+		DataField.accessLog = undefined;
+		return accessLog;
+	}
+
+	toString() {
+		if(DataField.accessLog !== undefined) DataField.accessLog.push(this as DataField<unknown>)
+		return this.sql;
+	}
 }
 
-export function dimension<V>(id: string, opts: Omit<DataFieldOpts<V>, "aggregation">) {
-	return new DataField(id, {...opts, aggregation: false});
+function dimension<V>(table: string, id: string, opts: Omit<DataFieldOpts<V>, "aggregation">) {
+	return new DataField([table], id, {...opts, aggregation: false});
 }
 
-export function metric<V>(id: string, opts: Omit<DataFieldOpts<V>, "aggregation">) {
-	return new DataField(id, {...opts, aggregation: true});
+export function metric<V>(id: () => string, opts: Omit<DataFieldOpts<V>, "aggregation">) {
+	const tables = DataField
+		.recordAccesses(id)
+		.map((df) => df.tables)
+		.flat();
+	return new DataField(tables, id(), {...opts, aggregation: true});
 }
 
 type CustomizeableDataFieldOpts<V> = {
@@ -73,43 +94,43 @@ const defaultDateOptions = (opts?: CustomizeableDataFieldOpts<Date>) =>  ({
 	sqlFormatter: (v: Date) => v.toString(),
 })
 
-export function number_metric<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<number | N>) {
+export function number_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<number | N>) {
 	return metric<number | N>(id, defaultNumberOptions(opts))
 }
 
 export abstract class TableSchemaBase {
-	protected abstract name: string;
+	public readonly abstract name: string;
 
 	string_dimension<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<string | N>) {
-		return dimension<string | N>(id, defaultStringOptions(opts))
+		return dimension<string | N>(this.name, id, defaultStringOptions(opts))
 	}
 
 	number_dimension<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<number | N>) {
-		return dimension<number | N>(id, defaultNumberOptions(opts))
+		return dimension<number | N>(this.name, id, defaultNumberOptions(opts))
 	}
 
 	boolean_dimension<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<boolean | N>) {
-		return dimension<boolean | N>(id, defaultBooleanOptions(opts))
+		return dimension<boolean | N>(this.name, id, defaultBooleanOptions(opts))
 	}
 
 	date_dimension<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<Date | N>) {
-		return dimension<Date | N>(id, defaultDateOptions(opts))
+		return dimension<Date | N>(this.name, id, defaultDateOptions(opts))
 	}
 }
 export abstract class DatabaseSchemaBase {
-	string_metric<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<string | N>) {
+	string_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<string | N>) {
 		return metric<string | N>(id, defaultStringOptions(opts))
 	}
 
-	number_metric<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<number | N>) {
+	number_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<number | N>) {
 		return metric<number | N>(id, defaultNumberOptions(opts))
 	}
 
-	boolean_metric<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<boolean | N>) {
+	boolean_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<boolean | N>) {
 		return metric<boolean | N>(id, defaultBooleanOptions(opts)	)
 	}
 
-	date_metric<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<Date | N>) {
+	date_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<Date | N>) {
 		return metric<Date | N>(id, defaultDateOptions(opts))
 	}
 }
@@ -234,7 +255,6 @@ export class Query {
 }
 
 export type AggregationQueryOptions<R> = {
-	table: string;
 	select: {
 		[K in keyof R]: DataField<R[K]>;
 	};
@@ -245,6 +265,7 @@ export type AggregationQueryOptions<R> = {
 };
 
 export function buildAggregationQuery<R>(options: AggregationQueryOptions<R>): Query {
+	const table = Object.values(options.select)[0].tables[0];
 	const select = Object.values(options.select)
 		.map((s) => `${s.sql}`)
 		.join(', ');
@@ -265,7 +286,7 @@ export function buildAggregationQuery<R>(options: AggregationQueryOptions<R>): Q
 		: [];
 	const parts = [
 		`SELECT ${select}`,
-		`FROM ${options.table}`,
+		`FROM ${table}`,
 		where ? `WHERE ${where.sql}` : undefined,
 		'GROUP BY ALL',
 		having ? `HAVING ${having.sql}` : undefined,

@@ -29,16 +29,18 @@
 
 	let orderBy: [DataField<unknown>, 'asc' | 'desc'][] = [];
 
+	function clause(fields: DataField<unknown>[]): string | undefined {
+		const fieldsSql = fields.map((f) => f.toString());
+		return fields.length === 1 ? fieldsSql[0] : `(${fieldsSql.join(', ')})`;
+	}
+
 	ctx.onUpdate(async () => {
 		if (!ctx.isActive) {
 			loading = true;
 			const distinctFields = columns
 				.map((c) => c.field)
 				.filter((f) => !f.aggregation)
-				.map((f) => f.sql);
-			const distinctClause =
-				distinctFields.length === 1 ? distinctFields[0] : `(${distinctFields.join(', ')})`;
-			const countResult = distinctFields.length === 0 ? [] : await ctx.fetch([number_metric(`count(distinct ${distinctClause})`)]);
+			const countResult = distinctFields.length === 0 ? [] : await ctx.fetch([number_metric(() => `count(distinct ${clause(distinctFields)})`)]);
 			const count = countResult.length > 0 ? countResult[0][0] : 0;
 			pages = Math.ceil(count / pageSize);
 			data = await ctx
