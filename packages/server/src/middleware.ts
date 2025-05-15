@@ -36,15 +36,19 @@ async function query(opts: QueryMiddlewareOpts) {
     req
       .on("data", (chunk) => chunks.push(chunk))
       .on("end", async () => {
-        const query = JSON.parse(Buffer.concat(chunks).toString());
+        try {
+          const query = JSON.parse(Buffer.concat(chunks).toString());
 
-        const conn = await db.connect();
-        const prepared = await conn.prepare(query);
-        const result = await prepared.run();
-        const rows = await result.getRows();
-
-        res.statusCode = 200;
-        res.end(JSON.stringify(rows.map((row) => row.map(parseDbValue))))
+          const conn = await db.connect();
+          const prepared = await conn.prepare(query);
+          const result = await prepared.run();
+          const rows = await result.getRows();
+          res.statusCode = 200;
+          res.end(JSON.stringify(rows.map((row) => row.map(parseDbValue))))
+        } catch (e: any) {
+          res.statusCode = 500;
+          res.end(e.toString())
+        }
       });
   }
 }
