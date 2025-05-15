@@ -25,7 +25,9 @@
     "@tailwindcss/vite": "^4.0.9",
     "@qwery/server": "workspace:*",
     "typescript": "~5.7.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "svelte": "^5.28.6",
+    "@qwery/dashboard": "workspace:*"
   },
   "devDependencies": {
     "vite-plugin-dts": "^4.5.3"

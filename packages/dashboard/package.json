@@ -63,15 +63,13 @@
 		"vite": "^6.0.0",
 		"vitest": "^3.0.0"
 	},
-	"peerDependencies": {
+	"dependencies": {
 		"echarts": "^5.6.0",
 		"lucide-svelte": "^0.477.0",
 		"nouislider": "^15.8.1",
 		"preline": "^3.0.0",
 		"svelte": "^5.0.0",
-		"vanilla-calendar-pro": "^3.0.3"
-	},
-	"dependencies": {
+		"vanilla-calendar-pro": "^3.0.3",
 		"tabulator-tables": "github:stefanhoelzl/tabulator#fixed"
 	}
 }
