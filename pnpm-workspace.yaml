@@ -1,4 +1,2 @@
 packages:
-  - packages/dashboard
-  - packages/server
-  - packages/vite-plugin
+  - packages/*
