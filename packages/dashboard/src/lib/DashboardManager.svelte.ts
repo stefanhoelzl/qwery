@@ -8,7 +8,7 @@ import {
 } from '$lib/QueryBuilder';
 
 class FetchQueryEngine {
-	async query<R>(schema: DatabaseSchema, opts: AggregationQueryOptions<R>): Promise<R[]> {
+	async query<R>(schema: DatabaseSchema, opts: AggregationQueryOptions<R>): Promise<[number, R[]]> {
 		const query = new Query(schema, opts);
 		const response = await fetch('/api/query', {
 			method: 'POST',
@@ -16,12 +16,9 @@ class FetchQueryEngine {
 			headers: { 'content-type': 'application/json' }
 		});
 
-		const json = (await response.json())[0];
-		return json.map((r: unknown[]) =>
-			Object.keys(opts.select)
-				.map((key, idx) => [key, idx] as const)
-				.reduce((prev, [key, idx]) => ({ ...prev, [key]: r[idx] }), {})
-		);
+		const json = await response.json();
+		const [count, records] = query.parse(json)
+		return [count, records];
 	}
 }
 
@@ -36,7 +33,7 @@ export interface PanelContext {
 	isActive: boolean;
 	isVisible: boolean;
 	pendingUpdate: boolean;
-	fetch<R>(fields: { [Key in keyof R]: Field<R[Key], unknown> }, opts?: FetchOpts): Promise<R[]>;
+	fetch<R>(fields: { [Key in keyof R]: Field<R[Key], unknown> }, opts?: FetchOpts): Promise<[number, R[]]>;
 	filter(filters: Filter[]): void;
 	dropFilter(field: Field<unknown, unknown>): void;
 	update(): void;

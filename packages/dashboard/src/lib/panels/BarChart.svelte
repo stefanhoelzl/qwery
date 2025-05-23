@@ -32,7 +32,7 @@
 
 	ctx.onUpdate(async () => {
     loading = true;
-		const data = await ctx.fetch({ x, y }, {orderBy})
+		const [_count, data] = await ctx.fetch({ x, y }, {orderBy})
     chart.setOption({
       xAxis: {
         data: data.map((r) => r.x)

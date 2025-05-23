@@ -41,8 +41,8 @@ async function query(opts: QueryMiddlewareOpts) {
           const queries = JSON.parse(raw);
 
           const results = []
+          const conn = await db.connect();
           for(let query of queries) {
-            const conn = await db.connect();
             const prepared = await conn.prepare(query);
             const result = await prepared.run();
             const rows = await result.getRows();

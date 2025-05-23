@@ -113,8 +113,8 @@ export function fieldFactories(): FieldFactories {
   return {
     column: function <T, D>(table: string, name: string, type: FieldType<T, D>): Field<T, D> {
       return new Field(
-        validatedId(`${table}.${name}`),
-        `${table}.${name}`,
+        validatedId(name),
+        name,
         [table],
         false,
         type,
@@ -216,9 +216,9 @@ export type AggregationQueryOptions<Record> = {
 };
 
 export class Query<Record> {
-  private sql: string[];
+  private readonly queries: string[];
 
-	constructor(schema: DatabaseSchema, options: AggregationQueryOptions<Record>) {
+	constructor(schema: DatabaseSchema, private readonly options: AggregationQueryOptions<Record>) {
     const tables = new Set([
       ...Object.values(options.select).map(s => s.tables).flat(),
       ...options.filters?.map(filter => filter.field.tables).flat() || [],
@@ -245,21 +245,40 @@ export class Query<Record> {
       ? options.orderBy.map(([field, dir]) => `${field.sql} ${dir}`)
       : [];
 
-    const parts = [
-      `SELECT ${select}`,
-      `FROM ${from}`,
+
+		const temp = [
+			"CREATE TEMPORARY TABLE _temp AS",
+      `SELECT ${select} FROM ${from}`,
       where ? `WHERE ${where}` : undefined,
       'GROUP BY ALL',
       having ? `HAVING ${having}` : undefined,
       `ORDER BY ${[...customOrder, ...defaultOrder].join(', ')}`,
+		]
+
+    const data = [
+      "SELECT * FROM _temp",
       options.limit ? `LIMIT ${options.limit}` : undefined,
       options.offset ? `OFFSET ${options.offset}` : undefined
     ];
 
-    this.sql = [parts.filter((p) => p !== undefined).join(' ')];
+    this.queries = [
+			temp.filter(p => p !== undefined).join(" "),
+			data.filter((p) => p !== undefined).join(' ')
+		];
   }
 
+	parse(result: [[number], unknown[]]): [number, Record[]] {
+		return [
+			result[0][0],
+			result[1].map((r: unknown[]) =>
+				Object.keys(this.options.select)
+					.map((key, idx) => [key, idx] as const)
+					.reduce((prev, [key, idx]) => ({ ...prev, [key]: r[idx] }), {})
+			)
+		];
+	}
+
   json() {
-		return JSON.stringify(this.sql);
+		return JSON.stringify(this.queries);
 	}
 }
