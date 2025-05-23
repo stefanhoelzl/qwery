@@ -1,36 +1,22 @@
 import { expect, test, vi } from 'vitest';
 import {
-	DataFieldFilterMap,
-	DataFieldFilter,
-	StringDimension,
-	type DataField
+	string,
+	Field
 } from '$lib/QueryBuilder';
 import { FilterManager } from '$lib/FilterManager';
 
-class MockFilter extends DataFieldFilter<unknown> {
-	get sql() {
-		return 'MockFilter';
-	}
-}
-
-class MockFilterMap extends DataFieldFilterMap {
-	constructor(filter?: MockFilter) {
-		super();
-		if (filter !== undefined) this.map.set(filter.dataField.id, filter);
-	}
-}
-
 let nextDataFieldId = 0;
-function mockDataField(id?: string) {
-	return new StringDimension(id || (nextDataFieldId++).toString()) as DataField<unknown>;
+function mockField(maybeId?: string) {
+	const id = maybeId || (nextDataFieldId++).toString()
+	return new Field(id, id, [], false, string()) as Field<unknown, unknown>;
 }
 
-function mockFilter(opts?: { dataField?: DataField<unknown> }) {
-	return new MockFilter(opts?.dataField || mockDataField());
-}
 
-function mockFilterMap(filter?: MockFilter) {
-	return new MockFilterMap(filter || mockFilter());
+function mockFilter(opts?: { field?: Field<unknown, unknown> }) {
+	return {
+		field: opts?.field || mockField(),
+		sql: "MockFilter"
+	}
 }
 
 test('filters are empty after init', () => {
@@ -41,43 +27,43 @@ test('filters are empty after init', () => {
 test('filters contain context filter', () => {
 	const filter = mockFilter();
 	const fm = new FilterManager();
-	fm.createContext().filter(mockFilterMap(filter));
+	fm.createContext().filter([filter]);
 	expect(fm.filters).toEqual([filter]);
 });
 
 test('context filter replaces existing filter for same data field', () => {
-	const firstFilter = mockFilter({ dataField: mockDataField('id') });
-	const secondFilter = mockFilter({ dataField: mockDataField('id') });
+	const firstFilter = mockFilter({ field: mockField('id') });
+	const secondFilter = mockFilter({ field: mockField('id') });
 	const fm = new FilterManager();
-	fm.createContext().filter(mockFilterMap(firstFilter));
-	fm.createContext().filter(mockFilterMap(secondFilter));
+	fm.createContext().filter([firstFilter]);
+	fm.createContext().filter([secondFilter]);
 	expect(fm.filters).toEqual([secondFilter]);
 });
 
 test('context filter keeps existing filter for different data field', () => {
-	const filter0 = mockFilter({ dataField: mockDataField() });
-	const filter1 = mockFilter({ dataField: mockDataField() });
+	const filter0 = mockFilter({ field: mockField() });
+	const filter1 = mockFilter({ field: mockField() });
 	const fm = new FilterManager();
-	fm.createContext().filter(mockFilterMap(filter0));
-	fm.createContext().filter(mockFilterMap(filter1));
+	fm.createContext().filter([filter0]);
+	fm.createContext().filter([filter1]);
 	expect(fm.filters).toEqual([filter0, filter1]);
 });
 
 test('context can remove filter for data fields', () => {
-	const dataField = mockDataField();
+	const field = mockField();
 	const fm = new FilterManager();
-	fm.createContext().filter(mockFilterMap(mockFilter({ dataField })));
-	fm.createContext().dropFilter(dataField);
+	fm.createContext().filter([mockFilter({ field })]);
+	fm.createContext().dropFilter(field);
 	expect(fm.filters).toHaveLength(0);
 });
 
 test('when same context filters multiple times, the previous filter gets deleted', () => {
-	const filter0 = mockFilter({ dataField: mockDataField() });
-	const filter1 = mockFilter({ dataField: mockDataField() });
+	const filter0 = mockFilter({ field: mockField() });
+	const filter1 = mockFilter({ field: mockField() });
 	const fm = new FilterManager();
 	const ctx = fm.createContext();
-	ctx.filter(mockFilterMap(filter0));
-	ctx.filter(mockFilterMap(filter1));
+	ctx.filter([filter0]);
+	ctx.filter([filter1]);
 	expect(fm.filters).toEqual([filter1]);
 });
 
@@ -85,7 +71,7 @@ test('fires event on filter change', () => {
 	const cb = vi.fn();
 	const fm = new FilterManager();
 	fm.onUpdate(cb);
-	fm.createContext().filter(mockFilterMap());
+	fm.createContext().filter([]);
 	expect(cb).toHaveBeenCalledExactlyOnceWith();
 });
 
@@ -93,8 +79,8 @@ test('fires event on filter removal', () => {
 	const cb = vi.fn();
 	const filter = mockFilter();
 	const fm = new FilterManager();
-	fm.createContext().filter(mockFilterMap(filter));
+	fm.createContext().filter([filter]);
 	fm.onUpdate(cb);
-	fm.createContext().dropFilter(filter.dataField);
+	fm.createContext().dropFilter(filter.field);
 	expect(cb).toHaveBeenCalledExactlyOnceWith();
 });

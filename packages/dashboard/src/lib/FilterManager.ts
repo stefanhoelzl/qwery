@@ -1,39 +1,40 @@
-import { DataFieldFilterMap, type DataField, DataFieldFilter } from '$lib/QueryBuilder';
+import { type Field, type Filter } from '$lib/QueryBuilder';
 
 export interface FilterContext {
-	filter(filterMap: DataFieldFilterMap): void;
-	dropFilter(dataField: DataField<unknown>): void;
+	filter(filters: Filter[]): void;
+	dropFilter(field: Field<unknown, unknown>): void;
 }
 
 type UpdateCallback = () => void;
 
 export class FilterManager {
-	private confirmedFilterMap = new DataFieldFilterMap();
-	private activeFilterMap = new DataFieldFilterMap();
+	private confirmedFilters: Filter[] = [];
+	private activeFilters: Filter[] = [];
 	private activeContext?: FilterContext = undefined;
 	private updateCallbacks: UpdateCallback[] = [];
 
 	createContext(): FilterContext {
 		const ctx = {
-			filter: (filterMap: DataFieldFilterMap) => {
+			filter: (filters: Filter[]) => {
 				if (ctx === this.activeContext) {
-					this.activeFilterMap = new DataFieldFilterMap(this.confirmedFilterMap.filters);
+					this.activeFilters = [...this.confirmedFilters];
 				} else {
-					this.confirmedFilterMap = new DataFieldFilterMap(this.activeFilterMap.filters);
+					this.confirmedFilters = [...this.activeFilters];
 				}
 				this.activeContext = ctx;
-				filterMap.filters.forEach((f) => this.activeFilterMap.replace(f));
+				this.activeFilters = this.activeFilters.filter(af => filters.every(f => f.field.id !== af.field.id))
+				this.activeFilters = [...this.activeFilters, ...filters];
 				this.updateCallbacks.forEach((cb) => cb());
 			},
-			dropFilter: (dataField: DataField<unknown>) => {
-				this.dropFilter(dataField);
+			dropFilter: (field: Field<unknown, unknown>) => {
+				this.dropFilter(field);
 			}
 		};
 		return ctx;
 	}
 
-	dropFilter(dataField: DataField<unknown>) {
-		this.activeFilterMap.delete(dataField);
+	dropFilter(field: Field<unknown, unknown>) {
+		this.activeFilters = this.activeFilters.filter(af => field.id !== af.field.id);
 		this.updateCallbacks.forEach((cb) => cb());
 	}
 
@@ -41,7 +42,7 @@ export class FilterManager {
 		this.updateCallbacks.push(cb);
 	}
 
-	get filters(): DataFieldFilter<unknown>[] {
-		return this.activeFilterMap.filters;
+	get filters(): Filter[] {
+		return this.activeFilters;
 	}
 }

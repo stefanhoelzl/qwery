@@ -1,18 +1,18 @@
 import { FilterManager } from '$lib/FilterManager';
 import {
-	DataField,
-	DataFieldFilter,
-	type DataFieldFilterMap,
-	type AggregationQueryOptions
+	Field,
+	Query,
+	type Filter,
+	type AggregationQueryOptions,
+	type DatabaseSchema
 } from '$lib/QueryBuilder';
-import { type Filter, buildAggregationQuery } from '$lib/QueryBuilder';
 
 class FetchQueryEngine {
-	async query<R>(opts: AggregationQueryOptions<R>): Promise<R[]> {
-		const body = buildAggregationQuery(opts);
+	async query<R>(schema: DatabaseSchema, opts: AggregationQueryOptions<R>): Promise<R[]> {
+		const query = new Query(schema, opts);
 		const response = await fetch('/api/query', {
 			method: 'POST',
-			body: body.json(),
+			body: query.json(),
 			headers: { 'content-type': 'application/json' }
 		});
 
@@ -28,7 +28,7 @@ class FetchQueryEngine {
 type FetchOpts = {
 	limit?: number;
 	offset?: number;
-	orderBy?: [DataField<unknown>, 'asc' | 'desc'][];
+	orderBy?: [Field<unknown, unknown>, 'asc' | 'desc'][];
 };
 
 export interface PanelContext {
@@ -36,9 +36,9 @@ export interface PanelContext {
 	isActive: boolean;
 	isVisible: boolean;
 	pendingUpdate: boolean;
-	fetch<R>(fields: { [Key in keyof R]: DataField<R[Key]> }, opts?: FetchOpts): Promise<R[]>;
-	filter<V>(filterMap: DataFieldFilterMap<V>): void;
-	dropFilter(dataField: DataField<unknown>): void;
+	fetch<R>(fields: { [Key in keyof R]: Field<R[Key], unknown> }, opts?: FetchOpts): Promise<R[]>;
+	filter(filters: Filter[]): void;
+	dropFilter(field: Field<unknown, unknown>): void;
 	update(): void;
 	onUpdate(cb: () => void): void;
 	drop(): void;
@@ -57,10 +57,10 @@ export class DashboardManager {
 	private updateHandler: Map<number, (() => void)[]> = new Map();
 	private queryEngine: FetchQueryEngine = new FetchQueryEngine();
 
-	public filters: DataFieldFilter<unknown>[] = $state([]);
+	public filters: Filter[] = $state([]);
 	private contexts: PanelContext[] = [];
 
-	constructor() {
+	constructor(private readonly schema: DatabaseSchema) {
 		this.filterManager.onUpdate(() => {
 			this.filters = this.filterManager.filters;
 			this.triggerUpdates();
@@ -111,24 +111,24 @@ export class DashboardManager {
 			isActive: false,
 			isVisible: true,
 			pendingUpdate: false,
-			fetch: <R>(fields: { [Key in keyof R]: DataField<R[Key]> }, opts?: FetchOpts) => {
-				return this.queryEngine.query({
+			fetch: <R>(fields: { [Key in keyof R]: Field<R[Key], unknown> }, opts?: FetchOpts) => {
+				return this.queryEngine.query(this.schema, {
 					select: fields,
 					filters: [...filters, ...this.filterManager.filters],
 					...opts
 				});
 			},
-			filter: (filterMap: DataFieldFilterMap) => {
+			filter: (filters: Filter[]) => {
 				this.contexts.forEach((context) => {
 					context.isActive = context === ctx;
 				});
-				filterCtx.filter(filterMap);
+				filterCtx.filter(filters);
 			},
-			dropFilter: (dataField: DataField<unknown>) => {
+			dropFilter: (field: Field<unknown, unknown>) => {
 				this.contexts.forEach((context) => {
 					context.isActive = false;
 				});
-				filterCtx.dropFilter(dataField);
+				filterCtx.dropFilter(field);
 			},
 			update: () => {
 				if (ctx.isVisible) {

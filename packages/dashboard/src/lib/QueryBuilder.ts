@@ -1,298 +1,265 @@
-type DataFieldOpts<V> = {
-	sql?: string;
-	label?: string;
-	aggregation: boolean;
-	stringFormatter: (value: NonNullable<V>) => string;
-	sqlFormatter: (value: NonNullable<V>) => string;
-};
-
-export class DataField<D> {
-	constructor(
-		public readonly tables: string[],
-		public readonly id: string,
-		protected readonly opts: DataFieldOpts<D>
-	) {}
-
-	get aggregation(): boolean {
-		return this.opts.aggregation;
+export class FieldType<ValueType, DbType> {
+  constructor(
+    private readonly opts: {
+      escape: (value: ValueType) => string,
+      parse: (value: DbType) => ValueType,
+      format: (value: ValueType) => string,
+    },
+  ) {}
+  nullable(): FieldType<ValueType | null, DbType | null> {
+		return this as FieldType<ValueType | null, DbType | null>
 	}
-
-	get sql(): string {
-		return this.opts?.sql || this.id;
-	}
-
-	get label(): string {
-		return this.opts?.label || this.id;
-	}
-
-	valueAsSql(value: D): string {
-		return value === null || value === undefined ? "NULL" : this.opts.sqlFormatter(value);
-	}
-
-	valueAsString(value: D): string {
-		return value === null || value === undefined
-			? '<null>'
-			: this.opts.stringFormatter(value);
-	}
-
-
-	private static accessLog: DataField<unknown>[] | undefined;
-
-	static recordAccesses(cb: () => void): DataField<unknown>[] {
-		DataField.accessLog = []
-		cb()
-		const accessLog = Array.from(DataField.accessLog)
-		DataField.accessLog = undefined;
-		return accessLog;
-	}
-
-	toString() {
-		if(DataField.accessLog !== undefined) DataField.accessLog.push(this as DataField<unknown>)
-		return this.sql;
-	}
+  get parse() { return this.opts.parse }
+  get escape() { return this.opts.escape }
+  get format() { return this.opts.format }
 }
 
-function dimension<V>(table: string, id: string, opts: Omit<DataFieldOpts<V>, "aggregation">) {
-	return new DataField([table], id, {...opts, aggregation: false});
+export function string(): FieldType<string, string> {
+  return new FieldType<string, string>({
+    escape: (value) => `'${value}'`,
+    parse: (value) => value,
+    format: (value) => value,
+  })
 }
 
-export function metric<V>(id: () => string, opts: Omit<DataFieldOpts<V>, "aggregation">) {
-	const tables = DataField
-		.recordAccesses(id)
-		.map((df) => df.tables)
-		.flat();
-	return new DataField(tables, id(), {...opts, aggregation: true});
+export function number(): FieldType<number, number> {
+  return new FieldType<number, number>({
+    escape: (value) => value.toString(),
+    parse: (value) => value,
+    format: (value) => value.toLocaleString(),
+  })
 }
 
-type CustomizeableDataFieldOpts<V> = {
-	sql?: string;
-	label?: string;
-	stringFormatter?: (value: NonNullable<V>) => string;
+export function boolean(): FieldType<boolean, boolean> {
+  return new FieldType<boolean, boolean>({
+    escape: (value) => value ? "TRUE" : "FALSE",
+    parse: (value) => value,
+    format: (value) => value.toLocaleString(),
+  })
 }
 
-const defaultStringOptions = (opts?: CustomizeableDataFieldOpts<string>) =>  ({
-	...opts,
-	stringFormatter: opts?.stringFormatter || ((v) => v.toString()),
-	sqlFormatter: (v: string) => `'${v.replaceAll("'", "''")}'`
-})
-
-const defaultNumberOptions = (opts?: CustomizeableDataFieldOpts<number>) =>  ({
-	...opts,
-	stringFormatter: opts?.stringFormatter || (v => v.toLocaleString()),
-	sqlFormatter: (v: number) => v.toString(),
-})
-
-const defaultBooleanOptions = (opts?: CustomizeableDataFieldOpts<boolean>) =>  ({
-	...opts,
-	stringFormatter: opts?.stringFormatter || (v => v.toString()),
-	sqlFormatter: (v: boolean) => v.toString(),
-})
-
-const defaultDateOptions = (opts?: CustomizeableDataFieldOpts<Date>) =>  ({
-	...opts,
-	stringFormatter: opts?.stringFormatter || (v => v.toLocaleString()),
-	sqlFormatter: (v: Date) => v.toString(),
-})
-
-export function number_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<number | N>) {
-	return metric<number | N>(id, defaultNumberOptions(opts))
+export function date(): FieldType<Date, string> {
+  return new FieldType<Date, string>({
+    escape: (value) => `'${value.toISOString()}'`,
+    parse: (value) => new Date(Date.parse(value)),
+    format: (value) => value.toLocaleString(),
+  })
 }
 
-export abstract class TableSchemaBase {
-	public readonly abstract name: string;
+type FieldOptions<ValueType> = {label?: string, formatter?: (value: ValueType) => string}
 
-	string_dimension<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<string | N>) {
-		return dimension<string | N>(this.name, id, defaultStringOptions(opts))
-	}
+export class Field<ValueType, DbType> {
+  private options: FieldOptions<ValueType> = {};
 
-	number_dimension<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<number | N>) {
-		return dimension<number | N>(this.name, id, defaultNumberOptions(opts))
-	}
+  constructor(
+    readonly id: string,
+    readonly sql: string,
+    readonly tables: string[],
+    readonly aggregated: boolean,
+    readonly type: FieldType<ValueType, DbType>,
+  ) {}
 
-	boolean_dimension<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<boolean | N>) {
-		return dimension<boolean | N>(this.name, id, defaultBooleanOptions(opts))
-	}
+  get label() {
+    return this.options.label || this.id;
+  }
 
-	date_dimension<N extends never | null = never>(id: string, opts?: CustomizeableDataFieldOpts<Date | N>) {
-		return dimension<Date | N>(this.name, id, defaultDateOptions(opts))
-	}
-}
-export abstract class DatabaseSchemaBase {
-	string_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<string | N>) {
-		return metric<string | N>(id, defaultStringOptions(opts))
-	}
+  configure(options: FieldOptions<ValueType>): Field<ValueType, DbType> {
+    this.options = {...this.options, ...options}
+    return this;
+  }
 
-	number_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<number | N>) {
-		return metric<number | N>(id, defaultNumberOptions(opts))
-	}
+  format(value: ValueType): string {
+    if(value === null) return "<NULL>";
+    return this.options.formatter === undefined ? this.type.format(value) : this.options.formatter(value)
+  }
 
-	boolean_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<boolean | N>) {
-		return metric<boolean | N>(id, defaultBooleanOptions(opts)	)
-	}
-
-	date_metric<N extends never | null = never>(id: () => string, opts?: CustomizeableDataFieldOpts<Date | N>) {
-		return metric<Date | N>(id, defaultDateOptions(opts))
-	}
+  toString(): string {
+    return this.sql;
+  }
 }
 
-export abstract class Filter {
-	abstract get aggregation(): boolean;
-	abstract get sql(): string;
+export interface FieldFactories {
+  column<T, D>(table: string, name: string, type: FieldType<T, D>): Field<T, D>;
+  computed<T, D>(id: string, [sqlString, usedFields, aggregated]: [string, Field<unknown, unknown>[], boolean], type: FieldType<T, D>): Field<T, D>;
 }
 
-export abstract class DataFieldFilter<V> extends Filter {
-	constructor(public dataField: DataField<V>) {
-		super();
-	}
-
-	get aggregation() {
-		return this.dataField.aggregation;
-	}
+function computed(strings: TemplateStringsArray, maybeFields: unknown[]): [string, Field<unknown, unknown>[]] {
+	const fields = maybeFields.filter(maybeField => maybeField instanceof Field)
+	const sql = strings.reduce(
+		(prev, curr, idx) => `${prev}${curr}${maybeFields[idx] === undefined ? "" : maybeFields[idx]}`,
+		''
+	);
+	return [sql, fields]
 }
 
-export class InFilter<V> extends DataFieldFilter<V> {
-	constructor(
-		dataField: DataField<V>,
-		private values: V[] = []
-	) {
-		super(dataField);
-	}
-
-	addValues(values: V[]) {
-		this.values = [...this.values, ...values];
-	}
-
-	get sql() {
-		return `${this.dataField.sql} IN (${this.values.map((v) => this.dataField.valueAsSql(v)).join(', ')})`;
-	}
+export function metric(strings: TemplateStringsArray, ...maybeFields: unknown[]): [string, Field<unknown, unknown>[], boolean] {
+	const [sql, fields] = computed(strings, maybeFields)
+	return [sql, fields, true]
 }
 
-export class RangeFilter extends DataFieldFilter<number> {
-	constructor(
-		dataField: DataField<number>,
-		public readonly min: number,
-		public readonly max: number
-	) {
-		super(dataField);
-	}
-
-	get sql() {
-		return `${this.dataField.sql} BETWEEN ${this.min} AND ${this.max}`;
-	}
+export function dimension(strings: TemplateStringsArray, ...maybeFields: unknown[]): [string, Field<unknown, unknown>[], boolean] {
+	const [sql, fields] = computed(strings, maybeFields)
+	return [sql, fields, false]
 }
 
-export class NotNullFilter<V> extends DataFieldFilter<V> {
-	get sql() {
-		return `${this.dataField.sql} IS NOT NULL`;
-	}
+export function fieldFactories(): FieldFactories {
+  const usedIds: Set<string> = new Set();
+  function validatedId(id: string): string {
+    if (usedIds.has(id)) throw `ID '${id}' is already used`;
+    usedIds.add(id)
+    return id;
+  }
+
+  return {
+    column: function <T, D>(table: string, name: string, type: FieldType<T, D>): Field<T, D> {
+      return new Field(
+        validatedId(`${table}.${name}`),
+        `${table}.${name}`,
+        [table],
+        false,
+        type,
+      );
+    },
+
+    computed: function <T, D>(id: string, [sqlString, usedFields, aggregated]: [string, Field <unknown, unknown>[], boolean], type: FieldType<T, D>): Field<T, D> {
+      return new Field(
+        validatedId(id),
+        sqlString,
+        usedFields.map(field => field.tables).flat(),
+        aggregated || usedFields.some(field => field.aggregated),
+        type,
+      );
+    },
+  }
 }
 
-export abstract class FilterGroup extends Filter {
-	protected abstract readonly joinWith: string;
-	protected abstract get filters(): Filter[];
-
-	get aggregation() {
-		return this.filters.some((f) => f.aggregation);
-	}
-
-	get sql() {
-		return this.filters.map((f) => f.sql).join(` ${this.joinWith} `);
-	}
+export interface DatabaseSchema {
+  join(tables: string[]): string;
 }
 
-abstract class FilterListGroup extends FilterGroup {
-	constructor(private readonly _filters: Filter[]) {
-		super();
-	}
-
-	get filters() {
-		return this._filters;
-	}
+export function table(name: string): DatabaseSchema {
+  return {
+    join: function(tables: string[]) { return name }
+  }
 }
 
-class AndFilter extends FilterListGroup {
-	joinWith = 'AND';
+export function star(...mappings: [Field<unknown, unknown>, Field<unknown, unknown>][]): DatabaseSchema {
+  if(mappings.length === 0) throw 'missing table joins'
+
+  mappings.forEach(mapping => mapping.forEach(field => {
+    if(field.tables.length != 1) throw `invalid star schema: field '${field.id}' referencing multiple tables (${field.tables.join(', ')})`
+  }));
+
+  const tables = new Set(mappings.map(([field, _]) => field.tables[0]));
+  if(tables.size != 1) throw `invalid star schema: multiple fact tables ${Array.from(tables).join(', ')}`
+  mappings.forEach(([field, _]) => {
+    mappings.forEach(([otherField, _]) => {
+      if(field.tables[0] != otherField.tables[0]) throw ``
+    })
+  })
+
+  mappings.forEach(([_, field]) => {
+    if(mappings.filter(([_, other]) => field.tables[0] == other.tables[0]).length > 1)
+      throw `table ${field.tables[0]} cannot be joined with multiple keys to fact table`
+  })
+
+  const factTable: string = tables.values().next().value!;
+
+  return {
+    join: function(tables): string {
+      let clause = factTable;
+      for(const [fromField, toField] of mappings) {
+        if(!tables.indexOf(toField.tables[0])) continue;
+
+        if(tables.indexOf(toField.tables[0]) > 1)
+          clause = `(${clause} INNER JOIN ${toField.tables[0]} ON ${fromField.sql} = ${toField.sql})`
+      }
+      return clause;
+    }
+  }
 }
 
-export class OrFilter extends FilterListGroup {
-	joinWith = 'OR';
+export interface Filter {
+  field: Field<unknown, unknown>;
+  sql: string;
 }
 
-export class DataFieldFilterMap<V = unknown> extends FilterGroup {
-	joinWith = 'AND';
-
-	protected readonly map: Map<string, DataFieldFilter<V>> = new Map();
-
-	constructor(initialFilters?: DataFieldFilter<V>[]) {
-		super();
-		initialFilters?.forEach((f) => this.map.set(f.dataField.id, f));
-	}
-
-	get filters() {
-		return Array.from(this.map.values());
-	}
-
-	has(dataField: DataField<unknown>) {
-		return this.map.has(dataField.id);
-	}
-
-	delete(dataField: DataField<unknown>) {
-		return this.map.delete(dataField.id);
-	}
-
-	replace(filter: DataFieldFilter<unknown>) {
-		const existed = this.has(filter.dataField);
-		this.map.set(filter.dataField.id, filter);
-		return existed;
-	}
+export function selection<ValueType>(field: Field<ValueType, unknown>, values: ValueType[]): Filter {
+  return {
+    field: field as Field<unknown, unknown>,
+    sql: `${field.sql} IN (${values.map(v => field.type.escape(v)).join(', ')})`,
+  }
 }
 
-export class Query {
-	constructor(private readonly sql: string) {}
-	json() {
-		return JSON.stringify(this.sql);
-	}
+export function range<ValueType>(field: Field<ValueType, unknown>, from: ValueType, to: ValueType): Filter {
+  return {
+    field: field as Field<unknown, unknown>,
+    sql: `${field.sql} BETWEEN ${field.type.escape(from)} AND ${field.type.escape(to)}`,
+  }
 }
 
-export type AggregationQueryOptions<R> = {
+export function notNull(field: Field<unknown, unknown>): Filter {
+  return {
+    field: field,
+    sql: `${field.sql} IS NOT NULL`
+  }
+}
+
+export type AggregationQueryOptions<Record> = {
 	select: {
-		[K in keyof R]: DataField<R[K]>;
+		[Key in keyof Record]: Field<Record[Key], unknown>;
 	};
 	filters?: Filter[];
 	limit?: number;
 	offset?: number;
-	orderBy?: [DataField<unknown>, 'asc' | 'desc'][];
+	orderBy?: [Field<unknown, unknown>, 'asc' | 'desc'][];
 };
 
-export function buildAggregationQuery<R>(options: AggregationQueryOptions<R>): Query {
-	const table = Object.values(options.select)[0].tables[0];
-	const select = Object.values(options.select)
-		.map((s) => `${s.sql}`)
-		.join(', ');
+export class Query<Record> {
+  private sql: string;
 
-	const filters = Array.from(options.filters || []).reduce(
-		(prev, filter) => {
-			if (filter.aggregation) prev.having.push(filter);
-			else prev.where.push(filter);
-			return prev;
-		},
-		{ where: [] as Filter[], having: [] as Filter[] }
-	);
-	const where = filters.where.length > 0 ? new AndFilter(filters.where) : undefined;
-	const having = filters.having.length > 0 ? new AndFilter(filters.having) : undefined;
-	const defaultOrder = Object.values(options.select).map((k) => k.sql);
-	const customOrder = options.orderBy
-		? options.orderBy.map(([field, dir]) => `${field.sql} ${dir}`)
-		: [];
-	const parts = [
-		`SELECT ${select}`,
-		`FROM ${table}`,
-		where ? `WHERE ${where.sql}` : undefined,
-		'GROUP BY ALL',
-		having ? `HAVING ${having.sql}` : undefined,
-		`ORDER BY ${[...customOrder, ...defaultOrder].join(',')}`,
-		options.limit ? `LIMIT ${options.limit}` : undefined,
-		options.offset ? `OFFSET ${options.offset}` : undefined
-	];
-	return new Query(parts.filter((p) => p !== undefined).join(' '));
+	constructor(schema: DatabaseSchema, options: AggregationQueryOptions<Record>) {
+    const tables = new Set([
+      ...Object.values(options.select).map(s => s.tables).flat(),
+      ...options.filters?.map(filter => filter.field.tables).flat() || [],
+    ]);
+    const from = schema.join(Array.from(tables));
+
+    const select = Object.values(options.select)
+      .map((s) => `${s.sql}`)
+      .join(', ');
+
+    const filters = Array.from(options.filters || []).reduce(
+      (prev, filter) => {
+        if (filter.field.aggregated) prev.having.push(filter);
+        else prev.where.push(filter);
+        return prev;
+      },
+      { where: [] as Filter[], having: [] as Filter[] }
+    );
+    const where = filters.where.length > 0 ? filters.where.map(filter => `(${filter.sql})`).join(" AND ") : undefined;
+    const having = filters.having.length > 0 ? filters.having.map(filter => `(${filter.sql})`).join(" AND ") : undefined;
+
+    const defaultOrder = Object.values(options.select).map((k) => k.sql);
+    const customOrder = options.orderBy
+      ? options.orderBy.map(([field, dir]) => `${field.sql} ${dir}`)
+      : [];
+
+    const parts = [
+      `SELECT ${select}`,
+      `FROM ${from}`,
+      where ? `WHERE ${where}` : undefined,
+      'GROUP BY ALL',
+      having ? `HAVING ${having}` : undefined,
+      `ORDER BY ${[...customOrder, ...defaultOrder].join(', ')}`,
+      options.limit ? `LIMIT ${options.limit}` : undefined,
+      options.offset ? `OFFSET ${options.offset}` : undefined
+    ];
+
+    this.sql = parts.filter((p) => p !== undefined).join(' ');
+  }
+
+  json() {
+		return JSON.stringify(this.sql);
+	}
 }

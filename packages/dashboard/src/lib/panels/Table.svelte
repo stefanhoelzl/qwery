@@ -1,11 +1,11 @@
 <script module lang="ts">
-	import type { DataField } from '$lib/QueryBuilder';
+	import { Field } from '$lib/QueryBuilder';
 	import type { PanelContext } from '$lib/DashboardManager.svelte';
 	import Loading from '$lib/views/Loading.svelte';
 
 	export type Columns<R extends unknown[]> = {
 		[K in keyof R]: {
-			field: DataField<R[K]>;
+			field: Field<R[K], unknown>;
 			width?: number;
 		};
 	};
@@ -18,7 +18,7 @@
 
 <script lang="ts" generics="R extends unknown[]">
 	import TableView from '$lib/views/TableView.svelte';
-	import { DataFieldFilterMap, InFilter, number_metric, RangeFilter } from '$lib/QueryBuilder';
+	import { selection, range, number } from '$lib/QueryBuilder';
 
 	let { columns, ctx }: Props<R> = $props();
 
@@ -27,9 +27,9 @@
 	let pages: number = $state(1);
 	let loading: boolean = $state(false);
 
-	let orderBy: [DataField<unknown>, 'asc' | 'desc'][] = [];
+	let orderBy: [Field<unknown, unknown>, 'asc' | 'desc'][] = [];
 
-	function clause(fields: DataField<unknown>[]): string | undefined {
+	function clause(fields: Field<unknown, unknown>[]): string | undefined {
 		const fieldsSql = fields.map((f) => f.toString());
 		return fields.length === 1 ? fieldsSql[0] : `(${fieldsSql.join(', ')})`;
 	}
@@ -39,9 +39,9 @@
 			loading = true;
 			const distinctFields = columns
 				.map((c) => c.field)
-				.filter((f) => !f.aggregation)
-			const countResult = distinctFields.length === 0 ? [] : await ctx.fetch([number_metric(() => `count(distinct ${clause(distinctFields)})`)]);
-			const count = countResult.length > 0 ? countResult[0][0] : 0;
+				.filter((f) => !f.aggregated)
+			const countResult = distinctFields.length === 0 ? [] : await ctx.fetch([new Field('count_distinct', `count(distinct ${clause(distinctFields)})`, distinctFields.map(f => f.tables).flat(), true, number())]);
+			const count = (countResult.length > 0 ? countResult[0][0] : 0) as number;
 			pages = Math.ceil(count / pageSize);
 			data = await ctx
 				.fetch<R>(
@@ -66,14 +66,12 @@
 
 	function onSelect(valueMap: Map<number, unknown[]>) {
 		ctx.filter(
-			new DataFieldFilterMap(
-				Array.from(
-					valueMap.entries().map(([col, values]) => {
-						if (values.every((v) => typeof v === 'number'))
-							return new RangeFilter(columns[col].field, Math.min(...values), Math.max(...values));
-						return new InFilter(columns[col].field, values);
-					})
-				)
+			Array.from(
+				valueMap.entries().map(([col, values]) => {
+					if (values.every((v) => typeof v === 'number'))
+						return range(columns[col].field, Math.min(...values), Math.max(...values));
+					return selection(columns[col].field, values);
+				})
 			)
 		);
 	}
@@ -85,7 +83,7 @@
 			field: key.toString(),
 			title: column.field.label,
 			width: column.width ? (column.width > 1 ? column.width : `${column.width * 100}%`) : undefined,
-			formatter: (cell) => column.field.valueAsString(cell.getValue())
+			formatter: (cell) => column.field.format(cell.getValue())
 		}))}
 		{data}
 		{pages}

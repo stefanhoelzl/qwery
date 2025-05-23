@@ -115,31 +115,22 @@ async function buildSchema(schemaFile: string, dbFile: string) {
   if(tables.length === 0) throw "imported database has no tables";
 
   await fs.writeFile(schemaFile, `
-import {
-  DatabaseSchemaBase, 
-  TableSchemaBase,
-} from '@qwery/dashboard';
+import { FieldFactories, number, string, date, boolean } from '@qwery/dashboard';
+
+export function buildSchema(ctx: FieldFactories) {
+  return {
 `);
 
   for(let table of tables) {
+    await fs.appendFile(schemaFile, `    ${table}: {\n`);
     const columns = await (await con.run(`describe ${table}`)).getRows();
-    const fields = columns
-      .map(col => col as [string, string, "YES" | "NO"])
-      .map((col) => (
-        `${col[0]} = this.${map[col[1]]}_dimension<${col[2] === "YES" ? "null" : "never"}>("${col[0]}");`
-    ))
-
-    await fs.appendFile(schemaFile, `
-class Table_${table} extends TableSchemaBase {
-  name = "${table}";
-${ fields.map(f => "  " + f ).join("\n") }
-}
-`);
+    for(let [name, dbtype, nullable] of columns.map(col => col as [string, string, "YES" | "NO"])) {
+      const type = `${map[dbtype]}()` + (nullable == "YES" ? ".nullable()" : "")
+      await fs.appendFile(schemaFile, `      ${name}: ctx.column("${table}", "${name}", ${type}),\n`);
+    }
+    await fs.appendFile(schemaFile, "    },\n")
   }
 
-  await fs.appendFile(schemaFile, `
-export class DatabaseSchema extends DatabaseSchemaBase {
-${ tables.map(table => `  ${table} = new Table_${table}();` ).join("\n") }
-}
-`)
+  await fs.appendFile(schemaFile, "  }\n}\n")
+  await fs.appendFile(schemaFile, "export type Schema = ReturnType<typeof buildSchema>;")
 }
