@@ -16,7 +16,7 @@ class FetchQueryEngine {
 			headers: { 'content-type': 'application/json' }
 		});
 
-		const json = await response.json();
+		const json = (await response.json())[0];
 		return json.map((r: unknown[]) =>
 			Object.keys(opts.select)
 				.map((key, idx) => [key, idx] as const)

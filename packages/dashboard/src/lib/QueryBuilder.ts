@@ -216,7 +216,7 @@ export type AggregationQueryOptions<Record> = {
 };
 
 export class Query<Record> {
-  private sql: string;
+  private sql: string[];
 
 	constructor(schema: DatabaseSchema, options: AggregationQueryOptions<Record>) {
     const tables = new Set([
@@ -256,7 +256,7 @@ export class Query<Record> {
       options.offset ? `OFFSET ${options.offset}` : undefined
     ];
 
-    this.sql = parts.filter((p) => p !== undefined).join(' ');
+    this.sql = [parts.filter((p) => p !== undefined).join(' ')];
   }
 
   json() {

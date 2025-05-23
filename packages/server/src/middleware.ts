@@ -37,14 +37,19 @@ async function query(opts: QueryMiddlewareOpts) {
       .on("data", (chunk) => chunks.push(chunk))
       .on("end", async () => {
         try {
-          const query = JSON.parse(Buffer.concat(chunks).toString());
+          const raw = Buffer.concat(chunks).toString();
+          const queries = JSON.parse(raw);
 
-          const conn = await db.connect();
-          const prepared = await conn.prepare(query);
-          const result = await prepared.run();
-          const rows = await result.getRows();
+          const results = []
+          for(let query of queries) {
+            const conn = await db.connect();
+            const prepared = await conn.prepare(query);
+            const result = await prepared.run();
+            const rows = await result.getRows();
+            results.push(rows.map((row) => row.map(parseDbValue)));
+          }
           res.statusCode = 200;
-          res.end(JSON.stringify(rows.map((row) => row.map(parseDbValue))))
+          res.end(JSON.stringify(results))
         } catch (e: any) {
           res.statusCode = 500;
           res.end(e.toString())
