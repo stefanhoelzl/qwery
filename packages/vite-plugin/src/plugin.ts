@@ -39,15 +39,6 @@ export function qwery() {
         config.build = {
           outDir: resolve(cwd(), "dist/ui"),
           emptyOutDir: true,
-          rollupOptions: {
-            output: {
-              manualChunks: {
-                echarts: ["echarts"],
-                preline: ["preline"],
-                tabulator: ["tabulator-tables"],
-              }
-            }
-          }
         };
 
         if(config.resolve === undefined) config.resolve = {};
