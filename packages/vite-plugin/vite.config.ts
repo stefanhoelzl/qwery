@@ -13,7 +13,7 @@ export default defineConfig({
         "process",
         "path",
         "node:fs/promises",
-        "@qwery/server/middleware",
+        "@stefan.hoelzl/server/middleware",
         /@sveltejs.*/,
         "@tailwindcss/vite",
         "@duckdb/node-api",

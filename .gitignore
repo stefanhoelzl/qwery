@@ -1,5 +1,4 @@
 node_modules
-pnpm-lock.yaml
 
 # Output
 .output
@@ -8,6 +7,7 @@ pnpm-lock.yaml
 .wrangler
 /.svelte-kit
 /build
+/dist
 
 
 # OS

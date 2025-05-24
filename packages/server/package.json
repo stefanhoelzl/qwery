@@ -1,6 +1,6 @@
 {
-  "name": "@qwery/server",
-  "version": "0.0.0",
+  "name": "@stefan.hoelzl/server",
+  "version": "0.0.0-qwery.0",
   "type": "module",
   "scripts": {
     "prepare": "vite build",

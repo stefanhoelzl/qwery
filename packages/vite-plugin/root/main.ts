@@ -1,5 +1,5 @@
 import { mount } from 'svelte'
-import { Dashboard, DashboardManager, fieldFactories, DatabaseSchema } from "@qwery/dashboard";
+import { Dashboard, DashboardManager, fieldFactories, DatabaseSchema } from "@stefan.hoelzl/dashboard";
 import dashboard from "@project/src/main.ts";
 import { buildSchema } from "@project/src/schema.ts";
 

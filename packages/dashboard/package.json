@@ -1,6 +1,6 @@
 {
-	"name": "@qwery/dashboard",
-	"version": "0.0.1",
+	"name": "@stefan.hoelzl/dashboard",
+	"version": "0.0.0-qwery.0",
 	"scripts": {
 		"dev": "vite dev",
 		"prepare": "svelte-kit sync && svelte-package",

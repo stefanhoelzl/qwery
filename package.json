@@ -1,0 +1,14 @@
+{
+  "name": "@stefan.hoelzl/monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@10.11.0",
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "git-describe": "^4.1.1",
+    "glob": "^11.0.2",
+    "just-task": "^1.12.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
