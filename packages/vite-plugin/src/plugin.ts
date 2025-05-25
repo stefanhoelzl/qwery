@@ -93,7 +93,6 @@ async function buildSchema(schemaFile: string, dbFile: string) {
     "INTEGER": "number",
     "FLOAT": "number",
     "BIGINT": "number",
-    "VARCHAR": "string",
     "TIMESTAMP": "date",
     "BOOLEAN": "boolean",
   }
@@ -116,7 +115,10 @@ export function buildSchema(ctx: FieldFactories) {
     await fs.appendFile(schemaFile, `    ${table}: {\n`);
     const columns = await (await con.run(`describe ${table}`)).getRows();
     for(let [name, dbtype, nullable] of columns.map(col => col as [string, string, "YES" | "NO"])) {
-      const type = `${map[dbtype]}()` + (nullable == "YES" ? ".nullable()" : "")
+      const [_, mappedType] = Object.entries(map)
+        .find(([db]) => dbtype.startsWith(db)) || [null, "string"];
+
+      const type = `${mappedType}()` + (nullable == "YES" ? ".nullable()" : "")
       await fs.appendFile(schemaFile, `      ${name}: ctx.column("${table}", "${name}", ${type}),\n`);
     }
     await fs.appendFile(schemaFile, "    },\n")
