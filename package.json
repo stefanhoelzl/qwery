@@ -2,13 +2,29 @@
   "name": "@qweri/monorepo",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "lint": "eslint . --ext .ts,.svelte,.js,.json"
+  },
   "devDependencies": {
+    "@eslint/compat": "^1.2.9",
+    "@eslint/js": "^9.26.0",
     "@types/glob": "^8.1.0",
+    "eslint": "^9.26.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-json": "^4.0.1",
+    "eslint-plugin-prettier": "^5.4.0",
+    "eslint-plugin-svelte": "^3.5.1",
     "git-describe": "^4.1.1",
     "glob": "^11.0.2",
+    "globals": "^16.1.0",
     "just-task": "^1.12.0",
+    "prettier": "^3.5.3",
+    "prettier-plugin-svelte": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.1"
   }
 }

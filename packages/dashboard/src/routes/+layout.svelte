@@ -1,6 +1,6 @@
 <script lang="ts">
-	import '$lib/dashboard.css';
-	let { children } = $props();
+  import "$lib/dashboard.css";
+  let { children } = $props();
 </script>
 
 {@render children()}

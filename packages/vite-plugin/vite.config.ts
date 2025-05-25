@@ -1,12 +1,12 @@
-import {defineConfig} from "vite";
-import dts from 'vite-plugin-dts'
+import { defineConfig } from "vite";
+import dts from "vite-plugin-dts";
 
 export default defineConfig({
   plugins: [dts()],
   build: {
     lib: {
-      entry: ['src/plugin.ts'],
-      formats: ['es'],
+      entry: ["src/plugin.ts"],
+      formats: ["es"]
     },
     rollupOptions: {
       external: [
@@ -16,8 +16,8 @@ export default defineConfig({
         "@qweri/server/middleware",
         /@sveltejs.*/,
         "@tailwindcss/vite",
-        "@duckdb/node-api",
+        "@duckdb/node-api"
       ]
     }
-  },
-})
+  }
+});

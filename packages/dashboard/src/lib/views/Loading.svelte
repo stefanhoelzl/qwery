@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {ChartNoAxesColumn} from "lucide-svelte";
+  import { ChartNoAxesColumn } from "lucide-svelte";
   import type { Snippet } from "svelte";
 
   interface Props {
@@ -7,13 +7,16 @@
     children: Snippet;
   }
 
-  let {loading, children}: Props = $props();
+  let { loading, children }: Props = $props();
 </script>
 
-<div class="w-full h-full relative">
-  <div class:hidden={!loading} class="absolute h-full w-full flex justify-center items-center bg-white/50 z-50">
-    <ChartNoAxesColumn class="h-full w-full max-h-16 max-w-16 stroke-1 animate-pulse"></ChartNoAxesColumn>
+<div class="relative h-full w-full">
+  <div
+    class:hidden={!loading}
+    class="absolute z-50 flex h-full w-full items-center justify-center bg-white/50"
+  >
+    <ChartNoAxesColumn class="h-full max-h-16 w-full max-w-16 animate-pulse stroke-1"
+    ></ChartNoAxesColumn>
   </div>
   {@render children()}
 </div>
-

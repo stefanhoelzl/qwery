@@ -1,12 +1,12 @@
-import type { ServerResponse, IncomingMessage } from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import {
   DuckDBInstance,
-  DuckDBTimestampValue,
-  DuckDBTimestampTZValue,
   DuckDBIntervalValue,
+  DuckDBTimestampTZValue,
+  DuckDBTimestampValue,
   DuckDBUUIDValue
 } from "@duckdb/node-api";
-import {Server} from "connect";
+import { Server } from "connect";
 
 interface QueryMiddlewareOpts {
   db: string;
@@ -23,16 +23,13 @@ function parseDbValue(v: unknown) {
 
 async function query(opts: QueryMiddlewareOpts) {
   const db = await DuckDBInstance.create(opts.db, {
-    access_mode: "READ_ONLY",
+    access_mode: "READ_ONLY"
     // threads: "2",
     // memory_limit: "4GB",
   });
 
-  return (
-    req: IncomingMessage,
-    res: ServerResponse<IncomingMessage>,
-  ) => {
-    const chunks: Buffer[] = []
+  return (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => {
+    const chunks: Buffer[] = [];
     req
       .on("data", (chunk) => chunks.push(chunk))
       .on("end", async () => {
@@ -40,24 +37,24 @@ async function query(opts: QueryMiddlewareOpts) {
           const raw = Buffer.concat(chunks).toString();
           const queries = JSON.parse(raw);
 
-          const results = []
+          const results = [];
           const conn = await db.connect();
-          for(let query of queries) {
+          for (const query of queries) {
             const prepared = await conn.prepare(query);
             const result = await prepared.run();
             const rows = await result.getRows();
             results.push(rows.map((row) => row.map(parseDbValue)));
           }
           res.statusCode = 200;
-          res.end(JSON.stringify(results))
-        } catch (e: any) {
+          res.end(JSON.stringify(results));
+        } catch (e: unknown) {
           res.statusCode = 500;
-          res.end(e.toString())
+          res.end(e);
         }
       });
-  }
+  };
 }
 
 export async function register(server: Server, opts: QueryMiddlewareOpts) {
-  server.use("/api/query", await query(opts))
+  server.use("/api/query", await query(opts));
 }
