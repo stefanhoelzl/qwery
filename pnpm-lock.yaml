@@ -173,33 +173,15 @@ importers:
         specifier: ^4.5.3
         version: 4.5.3(@types/node@22.15.17)(rollup@4.40.2)(typescript@5.7.3)(vite@6.3.5(@types/node@22.15.17)(jiti@2.4.2)(lightningcss@1.29.2)(sass-embedded@1.88.0))
 
-  packages/sharepad:
-    dependencies:
-      '@duckdb/node-api':
-        specifier: ^1.2.1-alpha.17
-        version: 1.2.1-alpha.17
-      '@stefan.hoelzl/dashboard':
-        specifier: workspace:*
-        version: link:../dashboard
-      '@stefan.hoelzl/vite-plugin':
-        specifier: workspace:*
-        version: link:../vite-plugin
-      typescript:
-        specifier: ~5.7.2
-        version: 5.7.3
-      vite:
-        specifier: ^6.2.0
-        version: 6.3.5(@types/node@22.15.17)(jiti@2.4.2)(lightningcss@1.29.2)(sass-embedded@1.88.0)
-
   packages/tb2logs:
     dependencies:
       '@duckdb/node-api':
         specifier: ^1.2.1-alpha.17
         version: 1.2.1-alpha.17
-      '@stefan.hoelzl/dashboard':
+      '@qweri/dashboard':
         specifier: workspace:*
         version: link:../dashboard
-      '@stefan.hoelzl/vite-plugin':
+      '@qweri/vite-plugin':
         specifier: workspace:*
         version: link:../vite-plugin
       typescript:
@@ -214,10 +196,10 @@ importers:
       '@duckdb/node-api':
         specifier: ^1.2.1-alpha.16
         version: 1.2.1-alpha.17
-      '@stefan.hoelzl/dashboard':
+      '@qweri/dashboard':
         specifier: workspace:*
         version: link:../dashboard
-      '@stefan.hoelzl/server':
+      '@qweri/server':
         specifier: workspace:*
         version: link:../server
       '@sveltejs/vite-plugin-svelte':

@@ -1,7 +1,7 @@
 import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from "@tailwindcss/vite";
 import type { PreviewServer, ViteDevServer, UserConfig, ResolvedConfig } from "vite";
-import {register} from "@stefan.hoelzl/server/middleware";
+import {register} from "@qweri/server/middleware";
 import {resolve, join} from "path";
 import {cwd} from "process";
 import fs from "node:fs/promises";
@@ -106,7 +106,7 @@ async function buildSchema(schemaFile: string, dbFile: string) {
   if(tables.length === 0) throw "imported database has no tables";
 
   await fs.writeFile(schemaFile, `
-import { FieldFactories, number, string, date, boolean } from '@stefan.hoelzl/dashboard';
+import { FieldFactories, number, string, date, boolean } from '@qweri/dashboard';
 
 export function buildSchema(ctx: FieldFactories) {
   return {

@@ -1,5 +1,5 @@
 {
-	"name": "@stefan.hoelzl/dashboard",
+	"name": "@qweri/dashboard",
 	"version": "0.0.0-qwery.0",
 	"scripts": {
 		"dev": "vite dev",

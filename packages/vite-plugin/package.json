@@ -1,5 +1,5 @@
 {
-  "name": "@stefan.hoelzl/vite-plugin",
+  "name": "@qweri/vite-plugin",
   "version": "0.0.0-qwery.0",
   "type": "module",
   "scripts": {
@@ -23,11 +23,11 @@
     "@duckdb/node-api": "^1.2.1-alpha.16",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@tailwindcss/vite": "^4.0.9",
-    "@stefan.hoelzl/server": "workspace:*",
+    "@qweri/server": "workspace:*",
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
     "svelte": "^5.28.6",
-    "@stefan.hoelzl/dashboard": "workspace:*"
+    "@qweri/dashboard": "workspace:*"
   },
   "devDependencies": {
     "vite-plugin-dts": "^4.5.3"
