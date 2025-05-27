@@ -22,7 +22,7 @@ function parseDbValue(v: unknown) {
 }
 
 async function query(opts: QueryMiddlewareOpts) {
-  const db = await DuckDBInstance.create(opts.db, {
+  const db = await DuckDBInstance.fromCache(opts.db, {
     access_mode: "READ_ONLY"
     // threads: "2",
     // memory_limit: "4GB",
@@ -49,7 +49,7 @@ async function query(opts: QueryMiddlewareOpts) {
           res.end(JSON.stringify(results));
         } catch (e: unknown) {
           res.statusCode = 500;
-          res.end(e);
+          res.end(`${e}`);
         }
       });
   };
