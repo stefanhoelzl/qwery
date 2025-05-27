@@ -1,13 +1,13 @@
-export class FieldType<ValueType, DbType> {
+export class FieldType<ValueType> {
   constructor(
     private readonly opts: {
       escape: (value: ValueType) => string;
-      parse: (value: DbType) => ValueType;
+      parse: (value: string) => ValueType;
       format: (value: ValueType) => string;
     }
   ) {}
-  nullable(): FieldType<ValueType | null, DbType | null> {
-    return this as FieldType<ValueType | null, DbType | null>;
+  nullable(): FieldType<ValueType | null> {
+    return this as FieldType<ValueType | null>;
   }
   get parse() {
     return this.opts.parse;
@@ -20,32 +20,32 @@ export class FieldType<ValueType, DbType> {
   }
 }
 
-export function string(): FieldType<string, string> {
-  return new FieldType<string, string>({
+export function string(): FieldType<string> {
+  return new FieldType<string>({
     escape: (value) => `'${value}'`,
     parse: (value) => value,
     format: (value) => value
   });
 }
 
-export function number(): FieldType<number, number> {
-  return new FieldType<number, number>({
+export function number(): FieldType<number> {
+  return new FieldType<number>({
     escape: (value) => value.toString(),
-    parse: (value) => value,
+    parse: (value) => parseFloat(value),
     format: (value) => value.toLocaleString()
   });
 }
 
-export function boolean(): FieldType<boolean, boolean> {
-  return new FieldType<boolean, boolean>({
+export function boolean(): FieldType<boolean> {
+  return new FieldType<boolean>({
     escape: (value) => (value ? "TRUE" : "FALSE"),
-    parse: (value) => value,
+    parse: (value) => value === "true",
     format: (value) => value.toLocaleString()
   });
 }
 
-export function date(): FieldType<Date, string> {
-  return new FieldType<Date, string>({
+export function date(): FieldType<Date> {
+  return new FieldType<Date>({
     escape: (value) => `'${value.toISOString()}'`,
     parse: (value) => new Date(Date.parse(value)),
     format: (value) => value.toLocaleString()
@@ -54,7 +54,7 @@ export function date(): FieldType<Date, string> {
 
 type FieldOptions<ValueType> = { label?: string; formatter?: (value: ValueType) => string };
 
-export class Field<ValueType, DbType> {
+export class Field<ValueType> {
   private options: FieldOptions<ValueType> = {};
 
   constructor(
@@ -62,14 +62,14 @@ export class Field<ValueType, DbType> {
     readonly sql: string,
     readonly tables: string[],
     readonly aggregated: boolean,
-    readonly type: FieldType<ValueType, DbType>
+    readonly type: FieldType<ValueType>
   ) {}
 
   get label() {
     return this.options.label || this.id;
   }
 
-  configure(options: FieldOptions<ValueType>): Field<ValueType, DbType> {
+  configure(options: FieldOptions<ValueType>): Field<ValueType> {
     this.options = { ...this.options, ...options };
     return this;
   }
@@ -87,18 +87,18 @@ export class Field<ValueType, DbType> {
 }
 
 export interface FieldFactories {
-  column<T, D>(table: string, name: string, type: FieldType<T, D>): Field<T, D>;
-  computed<T, D>(
+  column<T>(table: string, name: string, type: FieldType<T>): Field<T>;
+  computed<T>(
     id: string,
-    [sqlString, usedFields, aggregated]: [string, Field<unknown, unknown>[], boolean],
-    type: FieldType<T, D>
-  ): Field<T, D>;
+    [sqlString, usedFields, aggregated]: [string, Field<unknown>[], boolean],
+    type: FieldType<T>
+  ): Field<T>;
 }
 
 function computed(
   strings: TemplateStringsArray,
   maybeFields: unknown[]
-): [string, Field<unknown, unknown>[]] {
+): [string, Field<unknown>[]] {
   const fields = maybeFields.filter((maybeField) => maybeField instanceof Field);
   const sql = strings.reduce(
     (prev, curr, idx) => `${prev}${curr}${maybeFields[idx] === undefined ? "" : maybeFields[idx]}`,
@@ -110,7 +110,7 @@ function computed(
 export function metric(
   strings: TemplateStringsArray,
   ...maybeFields: unknown[]
-): [string, Field<unknown, unknown>[], boolean] {
+): [string, Field<unknown>[], boolean] {
   const [sql, fields] = computed(strings, maybeFields);
   return [sql, fields, true];
 }
@@ -118,7 +118,7 @@ export function metric(
 export function dimension(
   strings: TemplateStringsArray,
   ...maybeFields: unknown[]
-): [string, Field<unknown, unknown>[], boolean] {
+): [string, Field<unknown>[], boolean] {
   const [sql, fields] = computed(strings, maybeFields);
   return [sql, fields, false];
 }
@@ -132,15 +132,15 @@ export function fieldFactories(): FieldFactories {
   }
 
   return {
-    column: function <T, D>(table: string, name: string, type: FieldType<T, D>): Field<T, D> {
+    column: function <T>(table: string, name: string, type: FieldType<T>): Field<T> {
       return new Field(validatedId(name), name, [table], false, type);
     },
 
-    computed: function <T, D>(
+    computed: function <T>(
       id: string,
-      [sqlString, usedFields, aggregated]: [string, Field<unknown, unknown>[], boolean],
-      type: FieldType<T, D>
-    ): Field<T, D> {
+      [sqlString, usedFields, aggregated]: [string, Field<unknown>[], boolean],
+      type: FieldType<T>
+    ): Field<T> {
       return new Field(
         validatedId(id),
         sqlString,
@@ -164,9 +164,7 @@ export function table(name: string): DatabaseSchema {
   };
 }
 
-export function star(
-  ...mappings: [Field<unknown, unknown>, Field<unknown, unknown>][]
-): DatabaseSchema {
+export function star(...mappings: [Field<unknown>, Field<unknown>][]): DatabaseSchema {
   if (mappings.length === 0) throw "missing table joins";
 
   mappings.forEach((mapping) =>
@@ -207,32 +205,25 @@ export function star(
 }
 
 export interface Filter {
-  field: Field<unknown, unknown>;
+  field: Field<unknown>;
   sql: string;
 }
 
-export function selection<ValueType>(
-  field: Field<ValueType, unknown>,
-  values: ValueType[]
-): Filter {
+export function selection<ValueType>(field: Field<ValueType>, values: ValueType[]): Filter {
   return {
-    field: field as Field<unknown, unknown>,
+    field: field as Field<unknown>,
     sql: `${field.sql} IN (${values.map((v) => field.type.escape(v)).join(", ")})`
   };
 }
 
-export function range<ValueType>(
-  field: Field<ValueType, unknown>,
-  from: ValueType,
-  to: ValueType
-): Filter {
+export function range<ValueType>(field: Field<ValueType>, from: ValueType, to: ValueType): Filter {
   return {
-    field: field as Field<unknown, unknown>,
+    field: field as Field<unknown>,
     sql: `${field.sql} BETWEEN ${field.type.escape(from)} AND ${field.type.escape(to)}`
   };
 }
 
-export function notNull(field: Field<unknown, unknown>): Filter {
+export function notNull(field: Field<unknown>): Filter {
   return {
     field: field,
     sql: `${field.sql} IS NOT NULL`
@@ -241,12 +232,12 @@ export function notNull(field: Field<unknown, unknown>): Filter {
 
 export type AggregationQueryOptions<Record> = {
   select: {
-    [Key in keyof Record]: Field<Record[Key], unknown>;
+    [Key in keyof Record]: Field<Record[Key]>;
   };
   filters?: Filter[];
   limit?: number;
   offset?: number;
-  orderBy?: [Field<unknown, unknown>, "asc" | "desc"][];
+  orderBy?: [Field<unknown>, "asc" | "desc"][];
 };
 
 export class Query<Record> {
@@ -311,13 +302,13 @@ export class Query<Record> {
     ];
   }
 
-  parse(result: [[number], unknown[]]): [number, Record[]] {
+  parse([statistics, result]: [[number], unknown[][]]): [number, Record[]] {
     return [
-      result[0][0],
-      result[1].map((r: unknown[]) =>
+      statistics[0],
+      result.map((r) =>
         Object.keys(this.options.select)
           .map((key, idx) => [key, idx] as const)
-          .reduce((prev, [key, idx]) => ({ ...prev, [key]: r[idx] }), {})
+          .reduce((prev, [key, idx]) => ({ ...prev, [key]: r[idx] }), {} as Record)
       )
     ];
   }

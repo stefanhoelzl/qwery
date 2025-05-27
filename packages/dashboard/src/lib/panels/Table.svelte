@@ -5,7 +5,7 @@
 
   export type Columns<R extends unknown[]> = {
     [K in keyof R]: {
-      field: Field<R[K], unknown>;
+      field: Field<R[K]>;
       width?: number;
     };
   };
@@ -27,7 +27,7 @@
   let pages: number = $state(1);
   let loading: boolean = $state(false);
 
-  let orderBy: [Field<unknown, unknown>, "asc" | "desc"][] = [];
+  let orderBy: [Field<unknown>, "asc" | "desc"][] = [];
 
   ctx.onUpdate(async () => {
     if (!ctx.isActive) {
@@ -56,13 +56,11 @@
 
   function onSelect(valueMap: Map<number, unknown[]>) {
     ctx.filter(
-      Array.from(
-        valueMap.entries().map(([col, values]) => {
-          if (values.every((v) => typeof v === "number"))
-            return range(columns[col].field, Math.min(...values), Math.max(...values));
-          return selection(columns[col].field, values);
-        })
-      )
+      Array.from(valueMap.entries()).map(([col, values]) => {
+        if (values.every((v) => typeof v === "number"))
+          return range(columns[col].field, Math.min(...values), Math.max(...values));
+        return selection(columns[col].field, values);
+      })
     );
   }
 </script>

@@ -23,9 +23,9 @@
     };
 
   onMount(() =>
-    Array(tabs.length)
-      .keys()
-      .forEach((idx) => ctx?.changedChildVisibility(idx, idx === selectedIdx))
+    [...Array(tabs.length).keys()].forEach((_, idx) =>
+      ctx?.changedChildVisibility(idx, idx === selectedIdx)
+    )
   );
 </script>
 

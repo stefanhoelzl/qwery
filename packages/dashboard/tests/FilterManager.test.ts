@@ -5,10 +5,10 @@ import { FilterManager } from "$lib/FilterManager";
 let nextDataFieldId = 0;
 function mockField(maybeId?: string) {
   const id = maybeId || (nextDataFieldId++).toString();
-  return new Field(id, id, [], false, string()) as Field<unknown, unknown>;
+  return new Field(id, id, [], false, string()) as Field<unknown>;
 }
 
-function mockFilter(opts?: { field?: Field<unknown, unknown> }) {
+function mockFilter(opts?: { field?: Field<unknown> }) {
   return {
     field: opts?.field || mockField(),
     sql: "MockFilter"

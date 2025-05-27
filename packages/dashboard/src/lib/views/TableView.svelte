@@ -74,8 +74,8 @@
       selectableRangeInitializeDefault: false,
       sortMode: "remote",
       ajaxRequestFunc: (
-        url,
-        req,
+        _url,
+        _req,
         opts: { page: number; size: number; sort: { field: string; dir: "asc" | "desc" }[] }
       ) => request(opts.page, opts.sort),
       progressiveLoad: "scroll",

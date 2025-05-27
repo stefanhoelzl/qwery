@@ -25,7 +25,7 @@ class FetchQueryEngine {
 type FetchOpts = {
   limit?: number;
   offset?: number;
-  orderBy?: [Field<unknown, unknown>, "asc" | "desc"][];
+  orderBy?: [Field<unknown>, "asc" | "desc"][];
 };
 
 export interface PanelContext {
@@ -33,12 +33,9 @@ export interface PanelContext {
   isActive: boolean;
   isVisible: boolean;
   pendingUpdate: boolean;
-  fetch<R>(
-    fields: { [Key in keyof R]: Field<R[Key], unknown> },
-    opts?: FetchOpts
-  ): Promise<[number, R[]]>;
+  fetch<R>(fields: { [Key in keyof R]: Field<R[Key]> }, opts?: FetchOpts): Promise<[number, R[]]>;
   filter(filters: Filter[]): void;
-  dropFilter(field: Field<unknown, unknown>): void;
+  dropFilter(field: Field<unknown>): void;
   update(): void;
   onUpdate(cb: () => void): void;
   drop(): void;
@@ -109,7 +106,7 @@ export class DashboardManager {
       isActive: false,
       isVisible: true,
       pendingUpdate: false,
-      fetch: <R>(fields: { [Key in keyof R]: Field<R[Key], unknown> }, opts?: FetchOpts) => {
+      fetch: <R>(fields: { [Key in keyof R]: Field<R[Key]> }, opts?: FetchOpts) => {
         return this.queryEngine.query(this.schema, {
           select: fields,
           filters: [...filters, ...this.filterManager.filters],
@@ -122,7 +119,7 @@ export class DashboardManager {
         });
         filterCtx.filter(filters);
       },
-      dropFilter: (field: Field<unknown, unknown>) => {
+      dropFilter: (field: Field<unknown>) => {
         this.contexts.forEach((context) => {
           context.isActive = false;
         });

@@ -2,7 +2,7 @@ import { type Field, type Filter } from "$lib/QueryBuilder";
 
 export interface FilterContext {
   filter(filters: Filter[]): void;
-  dropFilter(field: Field<unknown, unknown>): void;
+  dropFilter(field: Field<unknown>): void;
 }
 
 type UpdateCallback = () => void;
@@ -28,14 +28,14 @@ export class FilterManager {
         this.activeFilters = [...this.activeFilters, ...filters];
         this.updateCallbacks.forEach((cb) => cb());
       },
-      dropFilter: (field: Field<unknown, unknown>) => {
+      dropFilter: (field: Field<unknown>) => {
         this.dropFilter(field);
       }
     };
     return ctx;
   }
 
-  dropFilter(field: Field<unknown, unknown>) {
+  dropFilter(field: Field<unknown>) {
     this.activeFilters = this.activeFilters.filter((af) => field.id !== af.field.id);
     this.updateCallbacks.forEach((cb) => cb());
   }

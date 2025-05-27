@@ -5,16 +5,16 @@
   import { CanvasRenderer } from "echarts/renderers";
   import { onMount } from "svelte";
   import type { PanelContext } from "$lib/DashboardManager.svelte";
-  import type { DataField } from "$lib/QueryBuilder";
+  import type { Field } from "$lib/QueryBuilder";
   import Loading from "$lib/views/Loading.svelte";
 
   echarts.use([BarChart, CanvasRenderer, GridComponent, TooltipComponent]);
 
   interface Props {
     ctx: PanelContext;
-    x: DataField<unknown>;
-    y: DataField<unknown>;
-    orderBy?: [DataField<unknown>, "asc" | "desc"][];
+    x: Field<unknown>;
+    y: Field<unknown>;
+    orderBy?: [Field<unknown>, "asc" | "desc"][];
     ymax?: number;
     log?: number;
   }
