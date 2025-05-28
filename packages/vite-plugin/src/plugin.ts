@@ -1,6 +1,7 @@
 import { join, resolve } from "path";
 import { cwd } from "process";
 import fs from "node:fs/promises";
+import path from "path";
 import { svelte, vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
 import type { PreviewServer, ResolvedConfig, UserConfig, ViteDevServer } from "vite";
@@ -77,6 +78,7 @@ export function qwery() {
 
 async function importDatabase(sqlFile: string, dbFile: string) {
   await fs.unlink(dbFile).catch(() => {});
+  await fs.mkdir(path.dirname(dbFile), { recursive: true });
   const sql = await fs.readFile(sqlFile).then((b) => b.toString());
 
   const db = await DuckDBInstance.create(dbFile);
@@ -88,6 +90,7 @@ async function importDatabase(sqlFile: string, dbFile: string) {
     const prepared = await statements.prepare(stmtIdx);
     await prepared.run();
   }
+  con.closeSync();
 }
 
 async function buildSchema(schemaFile: string, dbFile: string) {
@@ -108,7 +111,7 @@ async function buildSchema(schemaFile: string, dbFile: string) {
 
   await fs.writeFile(
     schemaFile,
-    `
+    `// @ts-nocheck
 import { FieldFactories, number, string, date, boolean } from '@qweri/dashboard';
 
 export function buildSchema(ctx: FieldFactories) {
@@ -138,4 +141,6 @@ export function buildSchema(ctx: FieldFactories) {
 
   await fs.appendFile(schemaFile, "  }\n}\n");
   await fs.appendFile(schemaFile, "export type Schema = ReturnType<typeof buildSchema>;");
+
+  con.closeSync();
 }
