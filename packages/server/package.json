@@ -16,11 +16,11 @@
   "exports": {
     "./app": {
       "import": "./dist/main.js",
-      "types": "./dist/main.d.ts"
+      "types": "./dist/src/main.d.ts"
     },
     "./middleware": {
       "import": "./dist/middleware.js",
-      "types": "./dist/middleware.d.ts"
+      "types": "./dist/src/middleware.d.ts"
     }
   },
   "dependencies": {

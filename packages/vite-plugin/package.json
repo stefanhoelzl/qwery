@@ -17,7 +17,7 @@
   "exports": {
     ".": {
       "import": "./dist/plugin.js",
-      "types": "./dist/plugin.d.ts"
+      "types": "./dist/src/plugin.d.ts"
     }
   },
   "dependencies": {
