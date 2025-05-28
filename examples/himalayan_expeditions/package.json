@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "tsc",
-    "download-data": "curl -L -o src/data.zip https://www.kaggle.com/api/v1/datasets/download/siddharth0935/himalayan-expeditions && unzip -d src/data src/data.zip"
+    "preinstall": "curl -L -o src/data.zip https://www.kaggle.com/api/v1/datasets/download/siddharth0935/himalayan-expeditions && unzip -o -d src/data src/data.zip"
   },
   "dependencies": {
     "@duckdb/node-api": "^1.2.1-alpha.17",
