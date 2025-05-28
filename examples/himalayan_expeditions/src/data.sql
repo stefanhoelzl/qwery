@@ -1,0 +1,1 @@
+CREATE TABLE expeditions AS SELECT * from 'src/data/exped.csv';

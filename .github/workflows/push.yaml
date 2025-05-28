@@ -18,7 +18,8 @@ jobs:
           
       - run: pnpm install
       - run: pnpm run lint
-      - run: pnpm run -r check
+      - run: pnpm run --recursive check
+      - run: pnpm run --filter=@examples/*
       
   publish:
     needs: [check]
