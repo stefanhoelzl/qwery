@@ -37,7 +37,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
 
-      - run: pnpx just-task set-version --ref=${{ github.ref_name }}
+      - run: pnpm run set-version ${{ github.ref_name }}
       - run: pnpm publish --recursive --access=public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
