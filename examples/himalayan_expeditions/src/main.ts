@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 
 import {
@@ -79,6 +80,7 @@ export default function dashboard(
     }
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function dimension_panel(dimension: Field<any>) {
     return panel({
       component: Table,
